@@ -1,8 +1,6 @@
 import 'dotenv/config'
 import { Payments } from '@nevermined-io/payments'
 
-const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e'
-
 async function main() {
   const payments = Payments.getInstance({
     nvmApiKey: process.env.NVM_API_KEY!,
@@ -25,9 +23,8 @@ async function main() {
       description: '100 requests for $10',
       dateCreated: new Date()
     },
-    payments.plans.getERC20PriceConfig(
-      10_000_000n,
-      USDC_ADDRESS,
+    payments.plans.getFiatPriceConfig(
+      1000n, // $10.00 in cents
       process.env.BUILDER_ADDRESS! as `0x${string}`
     ),
     payments.plans.getFixedCreditsConfig(100n, 1n)

@@ -11,18 +11,25 @@ async function main() {
     environment: 'sandbox'
   })
 
-  console.log('1. Ordering plan...')
-  await payments.plans.orderPlan(PLAN_ID)
-
-  console.log('2. Checking balance...')
+  // Check if buyer already has credits before ordering
+  console.log('1. Checking existing balance...')
   const balance = await payments.plans.getPlanBalance(PLAN_ID)
   console.log(`   Balance: ${balance.balance} credits`)
 
-  console.log('3. Getting access token...')
+  if (Number(balance.balance) === 0) {
+    console.log('2. No credits found. Initiating fiat checkout...')
+    const { result } = await payments.plans.orderFiatPlan(PLAN_ID)
+    console.log(`\n   Open this URL in your browser to complete payment:`)
+    console.log(`   ${result.url}\n`)
+    console.log('   After payment, re-run this script to continue.')
+    return
+  }
+
+  console.log('2. Getting access token...')
   const { accessToken } = await payments.x402.getX402AccessToken(PLAN_ID, AGENT_ID)
   console.log(`   Token: ${accessToken.slice(0, 40)}...`)
 
-  console.log(`4. Calling seller at ${SELLER_URL}/query...`)
+  console.log(`3. Calling seller at ${SELLER_URL}/query...`)
   const response = await fetch(`${SELLER_URL}/query`, {
     method: 'POST',
     headers: {
