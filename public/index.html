@@ -19,6 +19,8 @@
       --orange: #fdcb6e;
       --red: #ff7675;
       --blue: #74b9ff;
+      --nvm: #00d2ff;
+      --nvm2: #0099cc;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -30,7 +32,7 @@
 
     /* Header */
     .header {
-      padding: 24px 32px;
+      padding: 20px 32px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
@@ -54,47 +56,72 @@
       font-weight: 700;
       color: white;
     }
-    .logo h1 {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
+    .logo h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo span { font-size: 13px; color: var(--text2); font-weight: 400; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .nvm-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: rgba(0,210,255,0.08);
+      border: 1px solid rgba(0,210,255,0.25);
+      border-radius: 16px;
+      font-size: 12px;
+      color: var(--nvm);
+      font-weight: 500;
     }
-    .logo span {
-      font-size: 13px;
-      color: var(--text2);
-      font-weight: 400;
-    }
+    .nvm-badge svg { width: 14px; height: 14px; }
     .status-badge {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 14px;
+      padding: 5px 12px;
       background: rgba(0,184,148,0.1);
       border: 1px solid rgba(0,184,148,0.3);
-      border-radius: 20px;
-      font-size: 13px;
+      border-radius: 16px;
+      font-size: 12px;
       color: var(--green);
     }
     .status-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px; height: 7px;
       background: var(--green);
       border-radius: 50%;
       animation: pulse 2s infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
     }
+    .tab {
+      padding: 12px 24px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text2);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+    .tab.nvm-tab.active { color: var(--nvm); border-bottom-color: var(--nvm); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
     /* Layout */
     .main {
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 0 auto;
-      padding: 32px;
+      padding: 24px 32px;
       display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 24px;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
     }
 
     /* Cards */
@@ -105,13 +132,16 @@
       overflow: hidden;
     }
     .card-header {
-      padding: 16px 20px;
+      padding: 14px 20px;
       border-bottom: 1px solid var(--border);
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--text2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     .card-body { padding: 16px 20px; }
 
@@ -120,36 +150,22 @@
       grid-column: 1 / -1;
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
+      gap: 12px;
     }
     .stat-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 20px;
+      padding: 16px 20px;
     }
-    .stat-label {
-      font-size: 12px;
-      color: var(--text2);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .stat-value {
-      font-size: 28px;
-      font-weight: 700;
-      margin-top: 4px;
-      letter-spacing: -1px;
-    }
-    .stat-sub {
-      font-size: 12px;
-      color: var(--text2);
-      margin-top: 2px;
-    }
+    .stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-value { font-size: 26px; font-weight: 700; margin-top: 2px; letter-spacing: -1px; }
+    .stat-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
 
     /* Services panel */
     .service-list { list-style: none; }
     .service-item {
-      padding: 14px 20px;
+      padding: 12px 20px;
       border-bottom: 1px solid var(--border);
       cursor: pointer;
       transition: background 0.15s;
@@ -159,177 +175,100 @@
     }
     .service-item:last-child { border-bottom: none; }
     .service-item:hover { background: var(--surface2); }
-    .service-item.active {
-      background: rgba(108,92,231,0.1);
-      border-left: 3px solid var(--accent);
-    }
-    .service-name {
-      font-size: 14px;
-      font-weight: 500;
-    }
-    .service-desc {
-      font-size: 12px;
-      color: var(--text2);
-      margin-top: 2px;
-    }
+    .service-item.active { background: rgba(108,92,231,0.1); border-left: 3px solid var(--accent); }
+    .service-name { font-size: 13px; font-weight: 500; }
+    .service-desc { font-size: 11px; color: var(--text2); margin-top: 1px; }
     .credit-badge {
-      padding: 3px 10px;
+      padding: 2px 8px;
       background: rgba(108,92,231,0.15);
       border: 1px solid rgba(108,92,231,0.3);
-      border-radius: 12px;
-      font-size: 12px;
+      border-radius: 10px;
+      font-size: 11px;
       color: var(--accent2);
       font-weight: 600;
       white-space: nowrap;
     }
 
     /* Right panel */
-    .right-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
+    .right-panel { display: flex; flex-direction: column; gap: 20px; }
 
-    /* Query builder */
-    .query-form {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .form-row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-    .form-row label {
-      font-size: 12px;
-      color: var(--text2);
-      width: 80px;
-      flex-shrink: 0;
-    }
+    /* Form */
+    .query-form { display: flex; flex-direction: column; gap: 10px; }
+    .form-row { display: flex; gap: 12px; align-items: center; }
+    .form-row label { font-size: 12px; color: var(--text2); width: 70px; flex-shrink: 0; }
     .form-row select, .form-row input {
-      flex: 1;
-      padding: 8px 12px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 13px;
-      font-family: inherit;
+      flex: 1; padding: 7px 10px;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text); font-size: 13px; font-family: inherit;
     }
-    .form-row select:focus, .form-row input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
+    .form-row select:focus, .form-row input:focus { outline: none; border-color: var(--accent); }
+    .btn-row { display: flex; gap: 8px; justify-content: flex-end; }
     .run-btn {
-      padding: 10px 24px;
+      padding: 8px 20px;
       background: linear-gradient(135deg, var(--accent), #5b4cd4);
-      border: none;
-      border-radius: 8px;
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
+      border: none; border-radius: 6px;
+      color: white; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.15s;
     }
     .run-btn:hover { opacity: 0.9; }
-    .run-btn:active { transform: scale(0.98); }
-    .run-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
+    .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .nvm-btn {
+      padding: 8px 20px;
+      background: linear-gradient(135deg, var(--nvm2), #006688);
+      border: none; border-radius: 6px;
+      color: white; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.15s;
     }
+    .nvm-btn:hover { opacity: 0.9; }
+    .nvm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* Results area */
-    .result-container {
-      flex: 1;
-      min-height: 300px;
-    }
+    /* Results */
+    .result-container { flex: 1; min-height: 200px; }
     .result-placeholder {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 200px;
-      color: var(--text2);
-      font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      height: 160px; color: var(--text2); font-size: 13px;
     }
     .result-narrative {
-      padding: 16px 20px;
+      padding: 14px 18px;
       background: rgba(108,92,231,0.06);
       border-left: 3px solid var(--accent);
       border-radius: 0 8px 8px 0;
-      font-size: 14px;
-      line-height: 1.6;
-      color: var(--text);
-      margin-bottom: 16px;
+      font-size: 13px; line-height: 1.6;
+      margin-bottom: 14px;
     }
     .result-data {
-      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-      font-size: 12px;
-      line-height: 1.5;
-      background: var(--surface2);
-      border-radius: 8px;
-      padding: 16px;
-      overflow-x: auto;
-      white-space: pre-wrap;
-      color: var(--text2);
-      max-height: 400px;
-      overflow-y: auto;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px; line-height: 1.5;
+      background: var(--surface2); border-radius: 6px;
+      padding: 14px; overflow: auto; white-space: pre-wrap;
+      color: var(--text2); max-height: 350px;
     }
-
-    /* Key metrics from result */
     .metrics-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px; margin-bottom: 14px;
     }
-    .metric {
-      background: var(--surface2);
-      border-radius: 8px;
-      padding: 12px 16px;
-    }
-    .metric-label {
-      font-size: 11px;
-      color: var(--text2);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .metric-value {
-      font-size: 20px;
-      font-weight: 700;
-      margin-top: 2px;
-    }
+    .metric { background: var(--surface2); border-radius: 6px; padding: 10px 14px; }
+    .metric-label { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 18px; font-weight: 700; margin-top: 2px; }
     .metric-value.green { color: var(--green2); }
     .metric-value.orange { color: var(--orange); }
     .metric-value.red { color: var(--red); }
     .metric-value.blue { color: var(--blue); }
     .metric-value.accent { color: var(--accent2); }
+    .metric-value.nvm { color: var(--nvm); }
 
     /* Activity log */
-    .activity-log {
-      grid-column: 1 / -1;
-    }
-    .log-entries { max-height: 200px; overflow-y: auto; }
+    .activity-log { grid-column: 1 / -1; }
+    .log-entries { max-height: 180px; overflow-y: auto; }
     .log-entry {
-      padding: 10px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 13px;
+      padding: 8px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px; font-size: 12px;
     }
-    .log-time {
-      color: var(--text2);
-      font-family: monospace;
-      font-size: 12px;
-      flex-shrink: 0;
-    }
+    .log-time { color: var(--text2); font-family: monospace; font-size: 11px; flex-shrink: 0; }
     .log-type {
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      flex-shrink: 0;
+      padding: 2px 8px; border-radius: 4px;
+      font-size: 10px; font-weight: 600; flex-shrink: 0;
     }
     .log-type.noi { background: rgba(0,184,148,0.15); color: var(--green); }
     .log-type.tax { background: rgba(116,185,255,0.15); color: var(--blue); }
@@ -337,30 +276,119 @@
     .log-type.classify { background: rgba(162,155,254,0.15); color: var(--accent2); }
     .log-type.portfolio { background: rgba(255,118,117,0.15); color: var(--red); }
     .log-type.entity { background: rgba(85,239,196,0.15); color: var(--green2); }
-    .log-msg { color: var(--text); }
-    .log-credits { color: var(--text2); margin-left: auto; flex-shrink: 0; }
+    .log-type.x402 { background: rgba(0,210,255,0.15); color: var(--nvm); }
+    .log-msg { color: var(--text); flex: 1; }
+    .log-credits { color: var(--text2); flex-shrink: 0; }
 
-    /* Loading spinner */
+    /* Spinner */
     .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      margin-right: 8px;
-      vertical-align: middle;
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+      margin-right: 6px; vertical-align: middle;
     }
+    .spinner.nvm { border-top-color: var(--nvm); }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ===== NEVERMINED TAB ===== */
+    .nvm-layout {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .nvm-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    /* Agent Identity Card */
+    .agent-card {
+      background: linear-gradient(135deg, rgba(0,210,255,0.05), rgba(108,92,231,0.05));
+      border: 1px solid rgba(0,210,255,0.2);
+    }
+    .agent-card .card-header {
+      color: var(--nvm);
+      border-bottom-color: rgba(0,210,255,0.15);
+    }
+    .id-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .id-row:last-child { border-bottom: none; }
+    .id-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .id-value {
+      font-family: 'SF Mono', monospace; font-size: 12px;
+      color: var(--nvm); background: rgba(0,210,255,0.06);
+      padding: 3px 8px; border-radius: 4px;
+    }
+    .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .tag {
+      padding: 2px 8px; border-radius: 10px; font-size: 10px;
+      background: rgba(0,210,255,0.1); color: var(--nvm);
+      border: 1px solid rgba(0,210,255,0.2);
+    }
+
+    /* x402 Flow */
+    .flow-steps { display: flex; flex-direction: column; gap: 0; }
+    .flow-step {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 10px 0; position: relative;
+    }
+    .flow-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 13px; top: 32px; bottom: -2px;
+      width: 2px; background: var(--border);
+    }
+    .flow-step.active::after { background: var(--nvm); }
+    .flow-step.done::after { background: var(--green); }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--surface2); border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: var(--text2);
+      flex-shrink: 0; z-index: 1;
+    }
+    .flow-step.active .step-num { border-color: var(--nvm); color: var(--nvm); background: rgba(0,210,255,0.1); }
+    .flow-step.done .step-num { border-color: var(--green); color: white; background: var(--green); }
+    .flow-step.error .step-num { border-color: var(--red); color: white; background: var(--red); }
+    .step-content { flex: 1; min-width: 0; }
+    .step-action { font-size: 13px; font-weight: 600; }
+    .flow-step.active .step-action { color: var(--nvm); }
+    .flow-step.done .step-action { color: var(--green2); }
+    .step-detail { font-size: 11px; color: var(--text2); margin-top: 2px; word-break: break-all; }
+    .step-time { font-size: 10px; color: var(--text2); font-family: monospace; margin-top: 2px; }
+    .step-data {
+      margin-top: 4px; padding: 6px 10px;
+      background: var(--surface2); border-radius: 4px;
+      font-family: monospace; font-size: 10px; color: var(--text2);
+    }
+
+    /* Transaction table */
+    .tx-table { width: 100%; border-collapse: collapse; }
+    .tx-table th {
+      text-align: left; padding: 8px 12px;
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--text2); border-bottom: 1px solid var(--border);
+    }
+    .tx-table td {
+      padding: 8px 12px; font-size: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tx-table .mono { font-family: monospace; font-size: 11px; color: var(--nvm); }
+    .tx-table .settled { color: var(--green2); }
+    .tx-table .failed { color: var(--red); }
+
     /* Responsive */
-    @media (max-width: 768px) {
-      .main {
-        grid-template-columns: 1fr;
-        padding: 16px;
-      }
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; padding: 16px; }
       .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .nvm-grid { grid-template-columns: 1fr; }
       .activity-log { grid-column: 1; }
     }
   </style>
@@ -374,145 +402,240 @@
         <span>Tax & Finance Expert Agent</span>
       </div>
     </div>
-    <div class="status-badge">
-      <div class="status-dot"></div>
-      Agent Online
+    <div class="header-right">
+      <div class="nvm-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Nevermined x402
+      </div>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        Agent Online
+      </div>
     </div>
   </div>
 
-  <div class="main">
-    <!-- Stats Row -->
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">Queries Served</div>
-        <div class="stat-value" id="stat-queries">0</div>
-        <div class="stat-sub">total analyses</div>
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab nvm-tab active" data-tab="nevermined">Nevermined</div>
+    <div class="tab" data-tab="analysis">Analysis Engine</div>
+  </div>
+
+  <!-- ===== NEVERMINED TAB ===== -->
+  <div class="tab-content active" id="tab-nevermined">
+    <div class="nvm-layout">
+      <!-- Stats -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <div class="stat-card">
+          <div class="stat-label">Paid Transactions</div>
+          <div class="stat-value" id="nvm-stat-tx" style="color:var(--nvm)">0</div>
+          <div class="stat-sub">via x402 protocol</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Credits Earned</div>
+          <div class="stat-value" id="nvm-stat-credits" style="color:var(--green2)">0</div>
+          <div class="stat-sub">from agent-to-agent sales</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Unique Buyers</div>
+          <div class="stat-value" id="nvm-stat-buyers" style="color:var(--blue)">0</div>
+          <div class="stat-sub">agent wallets</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Response</div>
+          <div class="stat-value" id="nvm-stat-latency" style="color:var(--orange)">—</div>
+          <div class="stat-sub">verify → settle → return</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">Credits Earned</div>
-        <div class="stat-value" id="stat-credits" style="color:var(--green2)">0</div>
-        <div class="stat-sub">from transactions</div>
+
+      <div class="nvm-grid">
+        <!-- Agent Identity -->
+        <div class="card agent-card">
+          <div class="card-header">Agent Identity</div>
+          <div class="card-body" id="agent-identity">
+            <div class="id-row">
+              <span class="id-label">Agent</span>
+              <span class="id-value" id="agent-name">Loading...</span>
+            </div>
+            <div class="id-row">
+              <span class="id-label">Agent ID</span>
+              <span class="id-value" id="agent-id">—</span>
+            </div>
+            <div class="id-row">
+              <span class="id-label">Plan ID</span>
+              <span class="id-value" id="plan-id">—</span>
+            </div>
+            <div class="id-row">
+              <span class="id-label">Wallet</span>
+              <span class="id-value" id="wallet-addr">—</span>
+            </div>
+            <div class="id-row">
+              <span class="id-label">Network</span>
+              <span class="id-value" id="network-name">—</span>
+            </div>
+            <div class="id-row">
+              <span class="id-label">Plan</span>
+              <span class="id-value" id="plan-name">—</span>
+            </div>
+            <div class="id-row">
+              <span class="id-label">Protocol</span>
+              <span class="id-value">HTTP 402 / x402</span>
+            </div>
+            <div class="tag-row" id="agent-tags"></div>
+          </div>
+        </div>
+
+        <!-- x402 Payment Flow — Live Demo -->
+        <div class="card" style="border-color:rgba(0,210,255,0.2)">
+          <div class="card-header" style="color:var(--nvm)">
+            x402 Payment Flow — Live Demo
+            <div>
+              <select id="nvm-query-type" style="padding:4px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px">
+                <option value="property_noi">Property NOI (2 cr)</option>
+                <option value="tax_projection">Tax Projection (3 cr)</option>
+                <option value="qbi_analysis">QBI Analysis (5 cr)</option>
+                <option value="expense_classify">Expense Classify (1 cr)</option>
+              </select>
+              <button class="nvm-btn" id="nvm-demo-btn" style="margin-left:6px;padding:4px 12px;font-size:11px">Run Flow</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="flow-steps" id="flow-steps">
+              <div class="flow-step" id="fs-1"><div class="step-num">1</div><div class="step-content"><div class="step-action">Service Discovery</div><div class="step-detail">Buyer queries available services</div></div></div>
+              <div class="flow-step" id="fs-2"><div class="step-num">2</div><div class="step-content"><div class="step-action">402 Payment Required</div><div class="step-detail">Server returns payment challenge</div></div></div>
+              <div class="flow-step" id="fs-3"><div class="step-num">3</div><div class="step-content"><div class="step-action">Token Acquisition</div><div class="step-detail">Buyer gets x402 access token from Nevermined</div></div></div>
+              <div class="flow-step" id="fs-4"><div class="step-num">4</div><div class="step-content"><div class="step-action">Payment Verification</div><div class="step-detail">Server verifies token + balance</div></div></div>
+              <div class="flow-step" id="fs-5"><div class="step-num">5</div><div class="step-content"><div class="step-action">Analysis Engine</div><div class="step-detail">Financial analysis runs against data</div></div></div>
+              <div class="flow-step" id="fs-6"><div class="step-num">6</div><div class="step-content"><div class="step-action">Credit Settlement</div><div class="step-detail">Credits burned on-chain</div></div></div>
+              <div class="flow-step" id="fs-7"><div class="step-num">7</div><div class="step-content"><div class="step-action">Result Delivered</div><div class="step-detail">Analysis returned to buyer</div></div></div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">Properties Tracked</div>
-        <div class="stat-value" id="stat-properties" style="color:var(--blue)">5</div>
-        <div class="stat-sub">Austin STR portfolio</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Tax Savings Found</div>
-        <div class="stat-value" id="stat-savings" style="color:var(--orange)">$0</div>
-        <div class="stat-sub">this session</div>
+
+      <!-- Transaction Ledger -->
+      <div class="card" style="border-color:rgba(0,210,255,0.15)">
+        <div class="card-header" style="color:var(--nvm)">Transaction Ledger</div>
+        <div style="overflow-x:auto">
+          <table class="tx-table" id="tx-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Service</th>
+                <th>Credits</th>
+                <th>Payer</th>
+                <th>Status</th>
+                <th>Settlement Tx</th>
+                <th>Network</th>
+                <th>Latency</th>
+              </tr>
+            </thead>
+            <tbody id="tx-body">
+              <tr><td colspan="8" style="text-align:center;color:var(--text2);padding:24px">No transactions yet. Run a live demo above.</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- Services Panel (Left) -->
-    <div class="card">
-      <div class="card-header">Services</div>
-      <ul class="service-list" id="service-list">
-        <li class="service-item active" data-type="property_noi" data-params='{"property_id":"prop-03"}'>
-          <div>
-            <div class="service-name">Property NOI</div>
-            <div class="service-desc">Net Operating Income analysis</div>
-          </div>
-          <div class="credit-badge">2 credits</div>
-        </li>
-        <li class="service-item" data-type="tax_projection" data-params='{"owner_id":"owner-01"}'>
-          <div>
-            <div class="service-name">Tax Projection</div>
-            <div class="service-desc">Federal bracket math + effective rate</div>
-          </div>
-          <div class="credit-badge">3 credits</div>
-        </li>
-        <li class="service-item" data-type="qbi_analysis" data-params='{"owner_id":"owner-01"}'>
-          <div>
-            <div class="service-name">QBI Analysis</div>
-            <div class="service-desc">Section 199A deduction eligibility</div>
-          </div>
-          <div class="credit-badge">5 credits</div>
-        </li>
-        <li class="service-item" data-type="expense_classify" data-params='{"description":"HVAC repair at Zilker Cottage","amount":1850}'>
-          <div>
-            <div class="service-name">Expense Classify</div>
-            <div class="service-desc">Map expense to tax category</div>
-          </div>
-          <div class="credit-badge">1 credit</div>
-        </li>
-        <li class="service-item" data-type="portfolio_report" data-params='{"owner_id":"owner-01"}'>
-          <div>
-            <div class="service-name">Portfolio Report</div>
-            <div class="service-desc">Full portfolio health overview</div>
-          </div>
-          <div class="credit-badge">5 credits</div>
-        </li>
-        <li class="service-item" data-type="entity_recommendation" data-params='{"owner_id":"owner-01"}'>
-          <div>
-            <div class="service-name">Entity Recommendation</div>
-            <div class="service-desc">Schedule E vs S-Corp analysis</div>
-          </div>
-          <div class="credit-badge">3 credits</div>
-        </li>
-      </ul>
-    </div>
+  <!-- ===== ANALYSIS TAB ===== -->
+  <div class="tab-content" id="tab-analysis">
+    <div class="main">
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Queries Served</div>
+          <div class="stat-value" id="stat-queries">0</div>
+          <div class="stat-sub">total analyses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Credits Earned</div>
+          <div class="stat-value" id="stat-credits" style="color:var(--green2)">0</div>
+          <div class="stat-sub">from transactions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Properties Tracked</div>
+          <div class="stat-value" id="stat-properties" style="color:var(--blue)">5</div>
+          <div class="stat-sub">Austin STR portfolio</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tax Savings Found</div>
+          <div class="stat-value" id="stat-savings" style="color:var(--orange)">$0</div>
+          <div class="stat-sub">this session</div>
+        </div>
+      </div>
 
-    <!-- Right Panel -->
-    <div class="right-panel">
-      <!-- Query Builder -->
+      <!-- Services Panel -->
       <div class="card">
-        <div class="card-header">Run Analysis</div>
-        <div class="card-body">
-          <div class="query-form" id="query-form">
-            <div class="form-row">
-              <label>Service</label>
-              <select id="query-type">
-                <option value="property_noi">Property NOI</option>
-                <option value="tax_projection">Tax Projection</option>
-                <option value="qbi_analysis">QBI Analysis</option>
-                <option value="expense_classify">Expense Classify</option>
-                <option value="portfolio_report">Portfolio Report</option>
-                <option value="entity_recommendation">Entity Recommendation</option>
-              </select>
+        <div class="card-header">Services</div>
+        <ul class="service-list" id="service-list">
+          <li class="service-item active" data-type="property_noi"><div><div class="service-name">Property NOI</div><div class="service-desc">Net Operating Income analysis</div></div><div class="credit-badge">2 cr</div></li>
+          <li class="service-item" data-type="tax_projection"><div><div class="service-name">Tax Projection</div><div class="service-desc">Federal bracket math + effective rate</div></div><div class="credit-badge">3 cr</div></li>
+          <li class="service-item" data-type="qbi_analysis"><div><div class="service-name">QBI Analysis</div><div class="service-desc">Section 199A deduction eligibility</div></div><div class="credit-badge">5 cr</div></li>
+          <li class="service-item" data-type="expense_classify"><div><div class="service-name">Expense Classify</div><div class="service-desc">Map expense to tax category</div></div><div class="credit-badge">1 cr</div></li>
+          <li class="service-item" data-type="portfolio_report"><div><div class="service-name">Portfolio Report</div><div class="service-desc">Full portfolio health overview</div></div><div class="credit-badge">5 cr</div></li>
+          <li class="service-item" data-type="entity_recommendation"><div><div class="service-name">Entity Recommendation</div><div class="service-desc">Schedule E vs S-Corp analysis</div></div><div class="credit-badge">3 cr</div></li>
+        </ul>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <div class="card">
+          <div class="card-header">Run Analysis</div>
+          <div class="card-body">
+            <div class="query-form">
+              <div class="form-row">
+                <label>Service</label>
+                <select id="query-type">
+                  <option value="property_noi">Property NOI</option>
+                  <option value="tax_projection">Tax Projection</option>
+                  <option value="qbi_analysis">QBI Analysis</option>
+                  <option value="expense_classify">Expense Classify</option>
+                  <option value="portfolio_report">Portfolio Report</option>
+                  <option value="entity_recommendation">Entity Recommendation</option>
+                </select>
+              </div>
+              <div class="form-row" id="param-row">
+                <label id="param-label">Property</label>
+                <select id="param-value">
+                  <option value="prop-01">East Austin Bungalow</option>
+                  <option value="prop-02">South Congress Loft</option>
+                  <option value="prop-03" selected>Zilker Cottage</option>
+                  <option value="prop-04">Domain Modern Studio</option>
+                  <option value="prop-05">Rainey Street Condo</option>
+                </select>
+              </div>
+              <div class="form-row" id="expense-row" style="display:none">
+                <label>Expense</label>
+                <input id="expense-desc" type="text" value="HVAC repair at Zilker Cottage">
+              </div>
+              <div class="form-row" id="amount-row" style="display:none">
+                <label>Amount</label>
+                <input id="expense-amount" type="number" value="1850">
+              </div>
+              <div class="btn-row">
+                <button class="run-btn" id="run-btn">Run Analysis</button>
+              </div>
             </div>
-            <div class="form-row" id="param-row">
-              <label id="param-label">Property</label>
-              <select id="param-value">
-                <option value="prop-01">East Austin Bungalow</option>
-                <option value="prop-02">South Congress Loft</option>
-                <option value="prop-03" selected>Zilker Cottage</option>
-                <option value="prop-04">Domain Modern Studio</option>
-                <option value="prop-05">Rainey Street Condo</option>
-              </select>
-            </div>
-            <div class="form-row" id="expense-row" style="display:none">
-              <label>Expense</label>
-              <input id="expense-desc" type="text" placeholder="HVAC repair at Zilker Cottage" value="HVAC repair at Zilker Cottage">
-            </div>
-            <div class="form-row" id="amount-row" style="display:none">
-              <label>Amount</label>
-              <input id="expense-amount" type="number" placeholder="1850" value="1850">
-            </div>
-            <div class="form-row" style="justify-content:flex-end">
-              <button class="run-btn" id="run-btn">Run Analysis</button>
-            </div>
+          </div>
+        </div>
+
+        <div class="card result-container">
+          <div class="card-header" id="result-header">Results</div>
+          <div class="card-body" id="result-body">
+            <div class="result-placeholder">Select a service and run an analysis</div>
           </div>
         </div>
       </div>
 
-      <!-- Results -->
-      <div class="card result-container">
-        <div class="card-header" id="result-header">Results</div>
-        <div class="card-body" id="result-body">
-          <div class="result-placeholder">Select a service and run an analysis</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Activity Log -->
-    <div class="card activity-log">
-      <div class="card-header">Activity Log</div>
-      <div class="log-entries" id="log-entries">
-        <div class="log-entry">
-          <span class="log-time">--:--:--</span>
-          <span class="log-msg" style="color:var(--text2)">Waiting for queries...</span>
+      <!-- Activity Log -->
+      <div class="card activity-log">
+        <div class="card-header">Activity Log</div>
+        <div class="log-entries" id="log-entries">
+          <div class="log-entry">
+            <span class="log-time">--:--:--</span>
+            <span class="log-msg" style="color:var(--text2)">Waiting for queries...</span>
+          </div>
         </div>
       </div>
     </div>
@@ -520,27 +643,186 @@
 
   <script>
     const BASE = window.location.origin
-    let totalQueries = 0
-    let totalCredits = 0
-    let totalSavings = 0
+    let totalQueries = 0, totalCredits = 0, totalSavings = 0
 
-    // Service list click → select service
+    // ===== TAB SWITCHING =====
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'))
+        tab.classList.add('active')
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active')
+      })
+    })
+
+    // ===== NEVERMINED TAB =====
+
+    // Load agent identity
+    async function loadAgentIdentity() {
+      try {
+        const res = await fetch(`${BASE}/api/nevermined/agent`)
+        const data = await res.json()
+        const a = data.agent || {}
+        const p = data.plan || {}
+        const w = data.wallet || {}
+
+        document.getElementById('agent-name').textContent = a.name || '—'
+        document.getElementById('agent-id').textContent = a.shortId || a.id?.slice(0, 20) + '...' || '—'
+        document.getElementById('plan-id').textContent = p.shortId || p.id?.slice(0, 20) + '...' || '—'
+        document.getElementById('wallet-addr').textContent = w.shortAddress || w.address || '—'
+        document.getElementById('network-name').textContent = w.network || '—'
+        document.getElementById('plan-name').textContent = `${p.name || '—'} (${p.creditsPerPlan || 100} credits, ${p.pricing || 'free'})`
+
+        const tagsEl = document.getElementById('agent-tags')
+        if (a.tags?.length) {
+          tagsEl.innerHTML = a.tags.map(t => `<span class="tag">${t}</span>`).join('')
+        }
+      } catch {}
+    }
+    loadAgentIdentity()
+
+    // Load transaction stats
+    async function loadTxStats() {
+      try {
+        const res = await fetch(`${BASE}/api/nevermined/transactions`)
+        const data = await res.json()
+        const s = data.summary || {}
+
+        document.getElementById('nvm-stat-tx').textContent = s.totalTransactions || 0
+        document.getElementById('nvm-stat-credits').textContent = s.totalCreditsEarned || 0
+        document.getElementById('nvm-stat-buyers').textContent = s.uniqueBuyers || 0
+        document.getElementById('nvm-stat-latency').textContent = s.avgResponseMs ? s.avgResponseMs + 'ms' : '—'
+
+        renderTxTable(data.transactions || [])
+      } catch {}
+    }
+    loadTxStats()
+
+    function renderTxTable(txs) {
+      const tbody = document.getElementById('tx-body')
+      if (!txs.length) return
+      tbody.innerHTML = txs.map(tx => {
+        const time = new Date(tx.timestamp).toLocaleTimeString('en-US', { hour12: false })
+        const payer = tx.payer ? tx.payer.slice(0, 6) + '...' + tx.payer.slice(-4) : '—'
+        const txHash = tx.settlementTx ? tx.settlementTx.slice(0, 10) + '...' : '—'
+        const net = tx.network === 'eip155:84532' ? 'Base Sepolia' : tx.network || '—'
+        return `<tr>
+          <td style="font-family:monospace;font-size:11px;color:var(--text2)">${time}</td>
+          <td>${formatServiceName(tx.queryType)}</td>
+          <td style="font-weight:600;color:var(--accent2)">${tx.credits}</td>
+          <td class="mono">${payer}</td>
+          <td class="${tx.status === 'settled' ? 'settled' : 'failed'}">${tx.status}</td>
+          <td class="mono">${txHash}</td>
+          <td style="font-size:11px;color:var(--text2)">${net}</td>
+          <td style="font-family:monospace;color:var(--text2)">${tx.durationMs}ms</td>
+        </tr>`
+      }).join('')
+    }
+
+    // x402 Live Demo Flow
+    document.getElementById('nvm-demo-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('nvm-demo-btn')
+      const queryType = document.getElementById('nvm-query-type').value
+      btn.disabled = true
+      btn.textContent = 'Running...'
+
+      // Reset all steps
+      for (let i = 1; i <= 7; i++) {
+        const el = document.getElementById('fs-' + i)
+        el.className = 'flow-step'
+        const detail = el.querySelector('.step-detail')
+        const timeEl = el.querySelector('.step-time')
+        const dataEl = el.querySelector('.step-data')
+        if (timeEl) timeEl.remove()
+        if (dataEl) dataEl.remove()
+      }
+
+      // Default params
+      const params = queryType === 'property_noi'
+        ? { property_id: 'prop-03' }
+        : queryType === 'expense_classify'
+        ? { description: 'HVAC repair at Zilker Cottage', amount: 1850 }
+        : { owner_id: 'owner-01' }
+
+      try {
+        const res = await fetch(`${BASE}/api/nevermined/demo-flow`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query_type: queryType, params })
+        })
+        const data = await res.json()
+        const steps = data.steps || []
+
+        // Animate steps one by one
+        for (let i = 0; i < steps.length; i++) {
+          const step = steps[i]
+          const el = document.getElementById('fs-' + step.step)
+          if (!el) continue
+
+          await sleep(300)
+
+          el.className = 'flow-step ' + (step.status === 'error' ? 'error' : i === steps.length - 1 ? 'done' : 'active')
+          const detail = el.querySelector('.step-detail')
+          detail.textContent = step.detail
+
+          if (step.durationMs > 0) {
+            const timeEl = document.createElement('div')
+            timeEl.className = 'step-time'
+            timeEl.textContent = step.durationMs + 'ms'
+            el.querySelector('.step-content').appendChild(timeEl)
+          }
+
+          if (step.data) {
+            const dataEl = document.createElement('div')
+            dataEl.className = 'step-data'
+            const entries = Object.entries(step.data).map(([k, v]) => {
+              const val = typeof v === 'string' && v.length > 30 ? v.slice(0, 30) + '...' : v
+              return `${k}: ${val}`
+            })
+            dataEl.textContent = entries.join(' | ')
+            el.querySelector('.step-content').appendChild(dataEl)
+          }
+
+          // Mark previous as done
+          if (i > 0) {
+            const prev = document.getElementById('fs-' + steps[i - 1].step)
+            if (prev && !prev.classList.contains('error')) prev.className = 'flow-step done'
+          }
+        }
+
+        // Mark last as done
+        await sleep(200)
+        const last = document.getElementById('fs-' + steps[steps.length - 1]?.step)
+        if (last) last.className = 'flow-step done'
+
+        // Refresh stats
+        loadTxStats()
+
+      } catch (err) {
+        console.error(err)
+      }
+
+      btn.disabled = false
+      btn.textContent = 'Run Flow'
+    })
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
+
+    // ===== ANALYSIS TAB =====
+
+    // Service list click
     document.querySelectorAll('.service-item').forEach(item => {
       item.addEventListener('click', () => {
         document.querySelectorAll('.service-item').forEach(i => i.classList.remove('active'))
         item.classList.add('active')
-        const type = item.dataset.type
-        document.getElementById('query-type').value = type
-        updateParamUI(type)
+        document.getElementById('query-type').value = item.dataset.type
+        updateParamUI(item.dataset.type)
       })
     })
 
-    // Query type dropdown → sync
     document.getElementById('query-type').addEventListener('change', e => {
       const type = e.target.value
-      document.querySelectorAll('.service-item').forEach(i => {
-        i.classList.toggle('active', i.dataset.type === type)
-      })
+      document.querySelectorAll('.service-item').forEach(i => i.classList.toggle('active', i.dataset.type === type))
       updateParamUI(type)
     })
 
@@ -550,10 +832,8 @@
       const amountRow = document.getElementById('amount-row')
       const paramLabel = document.getElementById('param-label')
       const paramValue = document.getElementById('param-value')
-
       expenseRow.style.display = 'none'
       amountRow.style.display = 'none'
-
       if (type === 'expense_classify') {
         paramRow.style.display = 'none'
         expenseRow.style.display = 'flex'
@@ -561,188 +841,125 @@
       } else if (type === 'property_noi') {
         paramRow.style.display = 'flex'
         paramLabel.textContent = 'Property'
-        paramValue.innerHTML = `
-          <option value="prop-01">East Austin Bungalow</option>
-          <option value="prop-02">South Congress Loft</option>
-          <option value="prop-03" selected>Zilker Cottage</option>
-          <option value="prop-04">Domain Modern Studio</option>
-          <option value="prop-05">Rainey Street Condo</option>
-        `
+        paramValue.innerHTML = '<option value="prop-01">East Austin Bungalow</option><option value="prop-02">South Congress Loft</option><option value="prop-03" selected>Zilker Cottage</option><option value="prop-04">Domain Modern Studio</option><option value="prop-05">Rainey Street Condo</option>'
       } else {
         paramRow.style.display = 'flex'
         paramLabel.textContent = 'Owner'
-        paramValue.innerHTML = `<option value="owner-01" selected>Alex Morgan</option>`
+        paramValue.innerHTML = '<option value="owner-01" selected>Alex Morgan</option>'
       }
     }
 
-    // Build request body
     function buildRequest() {
       const type = document.getElementById('query-type').value
       let params = {}
-      if (type === 'property_noi') {
-        params = { property_id: document.getElementById('param-value').value }
-      } else if (type === 'expense_classify') {
-        params = {
-          description: document.getElementById('expense-desc').value,
-          amount: parseFloat(document.getElementById('expense-amount').value) || 0
-        }
-      } else {
-        params = { owner_id: document.getElementById('param-value').value }
-      }
+      if (type === 'property_noi') params = { property_id: document.getElementById('param-value').value }
+      else if (type === 'expense_classify') params = { description: document.getElementById('expense-desc').value, amount: parseFloat(document.getElementById('expense-amount').value) || 0 }
+      else params = { owner_id: document.getElementById('param-value').value }
       return { query_type: type, params }
     }
 
-    // Run analysis
     document.getElementById('run-btn').addEventListener('click', async () => {
       const btn = document.getElementById('run-btn')
       const resultBody = document.getElementById('result-body')
       const resultHeader = document.getElementById('result-header')
-
       btn.disabled = true
       btn.innerHTML = '<span class="spinner"></span>Analyzing...'
       resultBody.innerHTML = '<div class="result-placeholder"><span class="spinner"></span>Running analysis...</div>'
-
       const body = buildRequest()
       const startTime = Date.now()
-
       try {
-        const res = await fetch(`${BASE}/api/demo`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        })
-
+        const res = await fetch(`${BASE}/api/demo`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         const data = await res.json()
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
         const credits = data.credits_used || 0
-
-        totalQueries++
-        totalCredits += credits
+        totalQueries++; totalCredits += credits
         document.getElementById('stat-queries').textContent = totalQueries
         document.getElementById('stat-credits').textContent = totalCredits
-
         resultHeader.textContent = `Results — ${formatServiceName(body.query_type)} (${elapsed}s, ${credits} credits)`
         renderResult(body.query_type, data, resultBody)
         addLogEntry(body.query_type, data, credits)
-
-        // Track tax savings
-        if (data.data?.qbiAnalysis?.taxSavings) {
-          totalSavings += data.data.qbiAnalysis.taxSavings
-        }
-        if (data.data?.projection?.qbiDeduction) {
-          totalSavings += data.data.projection.qbiDeduction
-        }
-        if (totalSavings > 0) {
-          document.getElementById('stat-savings').textContent = '$' + Math.round(totalSavings).toLocaleString()
-        }
+        if (data.data?.qbiAnalysis?.taxSavings) totalSavings += data.data.qbiAnalysis.taxSavings
+        if (data.data?.taxProjection?.federalTax?.qbiSavings) totalSavings += data.data.taxProjection.federalTax.qbiSavings
+        if (totalSavings > 0) document.getElementById('stat-savings').textContent = '$' + Math.round(totalSavings).toLocaleString()
       } catch (err) {
         resultBody.innerHTML = `<div class="result-placeholder" style="color:var(--red)">Error: ${err.message}</div>`
       }
-
-      btn.disabled = false
-      btn.textContent = 'Run Analysis'
+      btn.disabled = false; btn.textContent = 'Run Analysis'
     })
 
     function formatServiceName(type) {
-      const names = {
-        property_noi: 'Property NOI',
-        tax_projection: 'Tax Projection',
-        qbi_analysis: 'QBI Analysis',
-        expense_classify: 'Expense Classify',
-        portfolio_report: 'Portfolio Report',
-        entity_recommendation: 'Entity Recommendation'
-      }
-      return names[type] || type
+      return { property_noi:'Property NOI', tax_projection:'Tax Projection', qbi_analysis:'QBI Analysis', expense_classify:'Expense Classify', portfolio_report:'Portfolio Report', entity_recommendation:'Entity Recommendation' }[type] || type
     }
 
     function renderResult(type, data, container) {
       let html = ''
-
-      // Narrative (if present)
-      if (data.narrative) {
-        html += `<div class="result-narrative">${data.narrative}</div>`
-      }
-
-      // Type-specific metrics
+      if (data.narrative) html += `<div class="result-narrative">${data.narrative}</div>`
       const d = data.data || {}
       html += '<div class="metrics-grid">'
-
       if (type === 'property_noi') {
         html += metric('Property', d.property?.name || '—', '')
         html += metric('YTD Revenue', money(d.ytd?.totalRevenue), 'green')
         html += metric('YTD Expenses', money(d.ytd?.totalExpenses), 'red')
         html += metric('YTD NOI', money(d.ytd?.noi), 'green')
-        html += metric('NOI Margin', (d.ytd?.noiMargin || 0) + '%', d.ytd?.noiMargin > 60 ? 'green' : 'orange')
-        html += metric('Cap Rate', (d.capRate || 0) + '%', 'blue')
-        html += metric('MP Hours', `${d.materialParticipation?.currentHours || 0}/${d.materialParticipation?.threshold || 750}`, d.materialParticipation?.status === 'met' ? 'green' : 'orange')
+        html += metric('NOI Margin', (d.ytd?.noiMargin||0)+'%', d.ytd?.noiMargin>60?'green':'orange')
+        html += metric('Cap Rate', (d.capRate||0)+'%', 'blue')
+        html += metric('MP Hours', `${d.materialParticipation?.currentHours||0}/${d.materialParticipation?.threshold||750}`, d.materialParticipation?.status==='met'?'green':'orange')
         html += metric('Annual Proj.', money(d.annualProjection?.projectedNOI), 'accent')
       } else if (type === 'tax_projection') {
-        const tp = d.taxProjection || {}
-        const inc = tp.income || {}
+        const tp=d.taxProjection||{}, inc=tp.income||{}
         html += metric('W-2 Income', money(inc.w2), '')
         html += metric('STR Net', money(inc.strNet), 'green')
         html += metric('Total AGI', money(inc.totalGross), 'blue')
         html += metric('Federal Tax', money(tp.federalTax?.beforeQBI?.totalTax), 'red')
-        html += metric('Effective Rate', (tp.summary?.effectiveRate || 0) + '%', 'orange')
+        html += metric('Effective Rate', (tp.summary?.effectiveRate||0)+'%', 'orange')
         html += metric('QBI Deduction', money(tp.qbi?.actualDeduction), 'green')
         html += metric('Tax w/ QBI', money(tp.summary?.estimatedTax), 'accent')
         html += metric('QBI Savings', money(tp.federalTax?.qbiSavings), 'green')
       } else if (type === 'qbi_analysis') {
-        html += metric('Owner', d.owner?.name || '—', '')
+        html += metric('Owner', d.owner?.name||'—', '')
         html += metric('STR Income', money(d.totalSTRIncome), 'green')
         html += metric('Total AGI', money(d.totalAGI), 'blue')
-        html += metric('QBI Status', d.qbiAnalysis?.status || '—', d.qbiAnalysis?.status === 'full' ? 'green' : 'orange')
+        html += metric('QBI Status', d.qbiAnalysis?.status||'—', d.qbiAnalysis?.status==='full'?'green':'orange')
         html += metric('Deduction', money(d.qbiAnalysis?.actualDeduction), 'green')
         html += metric('Tax Savings', money(d.qbiAnalysis?.taxSavings), 'green')
-        html += metric('Phase-out', d.qbiAnalysis?.phaseOutPct ? d.qbiAnalysis.phaseOutPct + '%' : 'None', d.qbiAnalysis?.phaseOutPct > 0 ? 'orange' : 'green')
+        html += metric('Phase-out', d.qbiAnalysis?.phaseOutPct?d.qbiAnalysis.phaseOutPct+'%':'None', d.qbiAnalysis?.phaseOutPct>0?'orange':'green')
       } else if (type === 'expense_classify') {
-        html += metric('Account', d.accountName || '—', 'accent')
-        html += metric('Code', d.accountCode || '—', '')
-        html += metric('Category', d.category || '—', 'blue')
-        html += metric('Schedule E', d.scheduleELine || '—', 'green')
+        html += metric('Account', d.accountName||'—', 'accent')
+        html += metric('Code', d.accountCode||'—', '')
+        html += metric('Category', d.category||'—', 'blue')
+        html += metric('Schedule E', d.scheduleELine||'—', 'green')
       } else if (type === 'portfolio_report') {
-        const p = d.portfolio || {}
-        html += metric('Entities', p.totalEntities || 0, 'blue')
-        html += metric('Properties', p.totalProperties || 0, 'accent')
+        const p=d.portfolio||{}
+        html += metric('Entities', p.totalEntities||0, 'blue')
+        html += metric('Properties', p.totalProperties||0, 'accent')
         html += metric('Total Revenue', money(p.totalRevenue), 'green')
         html += metric('Total Expenses', money(p.totalExpenses), 'red')
         html += metric('Net Income', money(p.totalNetIncome), 'green')
-        html += metric('NOI Margin', (p.overallNOIMargin || 0) + '%', 'accent')
-        html += metric('Alerts', d.alerts?.length || 0, d.alerts?.length > 0 ? 'orange' : 'green')
+        html += metric('NOI Margin', (p.overallNOIMargin||0)+'%', 'accent')
+        html += metric('Alerts', d.alerts?.length||0, d.alerts?.length>0?'orange':'green')
         if (d.alerts?.length) {
-          html += '</div><div style="margin-bottom:16px">'
-          d.alerts.forEach(a => {
-            html += `<div style="padding:8px 12px;margin-bottom:6px;background:rgba(253,203,110,0.08);border-left:3px solid var(--orange);border-radius:0 6px 6px 0;font-size:13px;color:var(--orange)">${a}</div>`
-          })
+          html += '</div><div style="margin-bottom:14px">'
+          d.alerts.forEach(a => { html += `<div style="padding:6px 12px;margin-bottom:4px;background:rgba(253,203,110,0.08);border-left:3px solid var(--orange);border-radius:0 6px 6px 0;font-size:12px;color:var(--orange)">${a}</div>` })
           html += '<div class="metrics-grid">'
         }
       } else if (type === 'entity_recommendation') {
-        const a = d.analysis || {}
+        const a=d.analysis||{}
         html += metric('STR Income', money(d.currentSTRIncome), 'blue')
         html += metric('Sched. E SE Tax', money(a.scheduleE?.selfEmploymentTax), 'red')
-        html += metric('Recommendation', (d.recommendation || '—').replace('_', ' '), 'accent')
+        html += metric('Recommendation', (d.recommendation||'—').replace('_',' '), 'accent')
         html += metric('S-Corp Salary', money(a.sCorp?.reasonableSalary), 'blue')
         html += metric('S-Corp SE Tax', money(a.sCorp?.selfEmploymentTax), 'green')
         html += metric('Annual Savings', money(a.sCorp?.annualSavings), 'green')
-        if (d.reasoning) {
-          html += '</div><div style="padding:12px 16px;margin-bottom:16px;background:rgba(108,92,231,0.06);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;font-size:14px;line-height:1.6;color:var(--text)">' + d.reasoning + '</div><div class="metrics-grid">'
-        }
+        if (d.reasoning) html += '</div><div style="padding:10px 14px;margin-bottom:14px;background:rgba(108,92,231,0.06);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;font-size:13px;line-height:1.5;color:var(--text)">' + d.reasoning + '</div><div class="metrics-grid">'
       }
-
       html += '</div>'
-
-      // Raw data
-      html += `<details><summary style="cursor:pointer;color:var(--text2);font-size:12px;margin-bottom:8px">Raw JSON</summary>`
-      html += `<div class="result-data">${JSON.stringify(d, null, 2)}</div>`
-      html += `</details>`
-
+      html += `<details><summary style="cursor:pointer;color:var(--text2);font-size:11px">Raw JSON</summary><div class="result-data">${JSON.stringify(d, null, 2)}</div></details>`
       container.innerHTML = html
     }
 
     function metric(label, value, color) {
       return `<div class="metric"><div class="metric-label">${label}</div><div class="metric-value ${color}">${value}</div></div>`
     }
-
     function money(val) {
       if (val == null) return '—'
       const num = typeof val === 'number' ? val : parseFloat(val)
@@ -754,33 +971,18 @@
       const log = document.getElementById('log-entries')
       const now = new Date().toLocaleTimeString('en-US', { hour12: false })
       const d = data.data || {}
-
       let msg = ''
-      if (type === 'property_noi') msg = `${d.property?.name || 'Property'} — NOI: ${money(d.ytd?.noi)}`
-      else if (type === 'tax_projection') msg = `Federal tax: ${money(d.projection?.federalTax)} (${d.projection?.effectiveRate}% eff.)`
+      if (type === 'property_noi') msg = `${d.property?.name||'Property'} — NOI: ${money(d.ytd?.noi)}`
+      else if (type === 'tax_projection') msg = `Effective rate: ${d.taxProjection?.summary?.effectiveRate||'?'}%`
       else if (type === 'qbi_analysis') msg = `QBI deduction: ${money(d.qbiAnalysis?.actualDeduction)} — ${d.qbiAnalysis?.status}`
       else if (type === 'expense_classify') msg = `${d.accountName} → ${d.scheduleELine}`
-      else if (type === 'portfolio_report') msg = `${d.entities?.length || 0} entities, NOI: ${money(d.totals?.noi)}`
-      else if (type === 'entity_recommendation') msg = `${d.recommendation || 'Analysis complete'}`
-
-      const typeClass = {
-        property_noi: 'noi', tax_projection: 'tax', qbi_analysis: 'qbi',
-        expense_classify: 'classify', portfolio_report: 'portfolio', entity_recommendation: 'entity'
-      }
-
+      else if (type === 'portfolio_report') msg = `${d.portfolio?.totalEntities||0} entities, NOI: ${money(d.portfolio?.totalNetIncome)}`
+      else if (type === 'entity_recommendation') msg = `${d.recommendation||'Analysis complete'}`
+      const typeClass = { property_noi:'noi', tax_projection:'tax', qbi_analysis:'qbi', expense_classify:'classify', portfolio_report:'portfolio', entity_recommendation:'entity' }
       const entry = document.createElement('div')
       entry.className = 'log-entry'
-      entry.innerHTML = `
-        <span class="log-time">${now}</span>
-        <span class="log-type ${typeClass[type] || ''}">${formatServiceName(type)}</span>
-        <span class="log-msg">${msg}</span>
-        <span class="log-credits">${credits} cr</span>
-      `
-
-      // Remove placeholder
-      if (log.children.length === 1 && log.children[0].querySelector('.log-msg')?.style?.color) {
-        log.innerHTML = ''
-      }
+      entry.innerHTML = `<span class="log-time">${now}</span><span class="log-type ${typeClass[type]||''}">${formatServiceName(type)}</span><span class="log-msg">${msg}</span><span class="log-credits">${credits} cr</span>`
+      if (log.children.length === 1 && log.children[0].querySelector('.log-msg')?.style?.color) log.innerHTML = ''
       log.prepend(entry)
     }
 
