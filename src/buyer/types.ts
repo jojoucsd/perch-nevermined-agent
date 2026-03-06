@@ -9,6 +9,7 @@ export interface DiscoveredAgent {
   endpoint: string          // URL to call for queries
   creditsPerPlan: number    // credits granted when ordering plan
   serviceCatalog: ServiceInfo[]
+  buyType: 'nevermined' | 'direct'  // nevermined = x402 token flow, direct = POST straight to URL
 }
 
 export interface ServiceInfo {

@@ -15,12 +15,13 @@ interface SubmittedService {
 
 interface AgentSubmission {
   name: string
-  planId: string
-  agentId: string
+  planId?: string   // optional for direct submissions
+  agentId?: string  // optional for direct submissions
   url: string
   services: SubmittedService[]
   submitterName?: string
   description?: string
+  buyType?: 'nevermined' | 'direct'
 }
 
 interface SubmittedAgent {
@@ -33,6 +34,7 @@ interface SubmittedAgent {
   submitterName: string
   description: string
   submittedAt: string
+  buyType: 'nevermined' | 'direct'
   status: 'pending' | 'purchased' | 'failed'
   purchaseResult?: {
     success: boolean
@@ -54,16 +56,19 @@ export function loadSubmittedAgents(): void {
 
 function saveAgent(submission: AgentSubmission): SubmittedAgent {
   const id = `submitted-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const url = submission.url.trim().replace(/\/$/, '')
+  const buyType = submission.buyType || (submission.planId && submission.agentId ? 'nevermined' : 'direct')
   const agent: SubmittedAgent = {
     id,
     name: submission.name.trim(),
-    planId: submission.planId.trim(),
-    agentId: submission.agentId.trim(),
-    url: submission.url.trim().replace(/\/$/, ''),
+    planId: submission.planId?.trim() || '',
+    agentId: submission.agentId?.trim() || url, // use URL as unique key for direct agents
+    url,
     services: submission.services,
     submitterName: submission.submitterName?.trim() || 'Anonymous',
     description: submission.description?.trim() || '',
     submittedAt: new Date().toISOString(),
+    buyType,
     status: 'pending',
   }
   agents.set(id, agent)
@@ -81,8 +86,12 @@ function updateStatus(
   if (purchaseResult) agent.purchaseResult = purchaseResult
 }
 
-function isDuplicate(agentId: string): boolean {
-  return [...agents.values()].some(a => a.agentId === agentId)
+function isDuplicate(submission: AgentSubmission): boolean {
+  const url = submission.url.trim().replace(/\/$/, '')
+  const agentId = submission.agentId?.trim()
+  return [...agents.values()].some(a =>
+    (agentId && a.agentId === agentId) || a.url === url
+  )
 }
 
 export function getAllSubmitted(): SubmittedAgent[] {
@@ -100,6 +109,7 @@ export function toDiscoveredAgent(submitted: SubmittedAgent): DiscoveredAgent {
     tags: ['hackathon', 'community', 'submitted'],
     endpoint: submitted.url,
     creditsPerPlan: 100,
+    buyType: submitted.buyType,
     serviceCatalog: submitted.services.map(s => ({
       query_type: s.path.replace(/^\//, ''),
       credits: s.credits,
@@ -134,11 +144,15 @@ export function createConnectRouter(): Router {
     // Validate
     const errors: string[] = []
     if (!body.name?.trim()) errors.push('name is required')
-    if (!body.planId?.trim()) errors.push('planId is required')
-    if (!body.agentId?.trim()) errors.push('agentId is required')
     if (!body.url?.trim()) errors.push('url is required')
     if (!Array.isArray(body.services) || body.services.length === 0) {
       errors.push('at least one service is required')
+    }
+    // Nevermined agents need planId + agentId
+    const isNevermined = body.buyType === 'nevermined' || (body.planId && body.agentId)
+    if (isNevermined) {
+      if (!body.planId?.trim()) errors.push('planId is required for Nevermined agents')
+      if (!body.agentId?.trim()) errors.push('agentId is required for Nevermined agents')
     }
 
     if (errors.length > 0) {
@@ -146,7 +160,7 @@ export function createConnectRouter(): Router {
       return
     }
 
-    if (isDuplicate(body.agentId.trim())) {
+    if (isDuplicate(body)) {
       res.status(409).json({
         error: 'Agent already submitted',
         message: 'This agent is already connected. Tallyfor AI will continue buying from it.',

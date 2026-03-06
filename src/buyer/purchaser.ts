@@ -26,20 +26,27 @@ export async function executePurchase(
   }
 
   try {
-    // Step 1: Order the plan (idempotent — safe to call repeatedly)
-    console.log(`[Purchase] Ordering plan ${agent.planId.slice(0, 16)}...`)
-    try {
-      await payments.plans.orderPlan(agent.planId)
-    } catch (err: any) {
-      // "already ordered" is fine
-      if (!err.message?.includes('already') && !err.message?.includes('duplicate')) {
-        console.log(`[Purchase] Order note: ${err.message?.slice(0, 60)}`)
-      }
-    }
+    const isDirect = agent.buyType === 'direct'
+    let accessToken = ''
 
-    // Step 2: Get x402 access token
-    console.log(`[Purchase] Getting x402 token for agent ${agent.name}...`)
-    const { accessToken } = await payments.x402.getX402AccessToken(agent.planId, agent.agentId)
+    if (!isDirect) {
+      // Step 1: Order the plan (idempotent — safe to call repeatedly)
+      console.log(`[Purchase] Ordering plan ${agent.planId.slice(0, 16)}...`)
+      try {
+        await payments.plans.orderPlan(agent.planId)
+      } catch (err: any) {
+        if (!err.message?.includes('already') && !err.message?.includes('duplicate')) {
+          console.log(`[Purchase] Order note: ${err.message?.slice(0, 60)}`)
+        }
+      }
+
+      // Step 2: Get x402 access token
+      console.log(`[Purchase] Getting x402 token for agent ${agent.name}...`)
+      const result = await payments.x402.getX402AccessToken(agent.planId, agent.agentId)
+      accessToken = result.accessToken
+    } else {
+      console.log(`[Purchase] Direct agent ${agent.name} — skipping x402, posting straight to URL`)
+    }
 
     // Step 3: Find the endpoint to call
     const queryType = queryPayload.query_type as string | undefined
@@ -54,14 +61,15 @@ export async function executePurchase(
     // Build fallback endpoints to try
     const base = agent.endpoint.replace(/\/$/, '').replace(/\/api\/.*$/, '')
     const endpoints = [primaryEndpoint]
-    // Only add /query fallback if primary isn't already a specific API path
     if (!primaryEndpoint.includes('/api/') && !primaryEndpoint.endsWith('/query')) {
       endpoints.push(`${base}/query`)
     }
-    // Dedupe
     const uniqueEndpoints = [...new Set(endpoints)]
 
-    // Step 4: Call the agent — try endpoints in order
+    // Step 4: Call the agent
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (accessToken) headers['payment-signature'] = accessToken
+
     let resp: Response | null = null
     let usedEndpoint = ''
     for (const ep of uniqueEndpoints) {
@@ -69,15 +77,12 @@ export async function executePurchase(
         console.log(`[Purchase] Trying ${ep}...`)
         resp = await fetch(ep, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'payment-signature': accessToken,
-          },
+          headers,
           body: JSON.stringify(queryPayload),
           signal: AbortSignal.timeout(30000),
         })
         usedEndpoint = ep
-        if (resp.status < 500) break // Accept any non-server-error
+        if (resp.status < 500) break
       } catch (err: any) {
         console.log(`[Purchase] ${ep} failed: ${err.message?.slice(0, 60)}`)
         resp = null

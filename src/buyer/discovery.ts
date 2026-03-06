@@ -61,6 +61,7 @@ export async function discoverAgents(payments: Payments): Promise<DiscoveredAgen
               tags: agentDetails.metadata?.main?.tags || agentDetails.tags || [],
               endpoint,
               creditsPerPlan: Number(plan.creditsGranted || plan.credits || 100),
+              buyType: 'nevermined',
               serviceCatalog,
             })
           }

@@ -67,8 +67,8 @@
           <div class="flex items-center gap-3">
             <img src="/img/tallyfor-icon.png" alt="Tallyfor" class="w-10 h-10">
             <div>
-              <h3 class="text-lg font-bold leading-tight">Our Agent Details</h3>
-              <p class="text-sm text-perch-200">Copy &amp; paste into another team's connect page</p>
+              <h3 class="text-lg font-bold leading-tight">Buy From Us</h3>
+              <p class="text-sm text-perch-200">Two ways to call our agent — pick what works for you</p>
             </div>
           </div>
           <button onclick="copyAllAgentInfo()" id="copy-all-btn" class="px-5 py-2.5 rounded-xl bg-white text-perch-800 text-sm font-bold hover:bg-perch-100 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl active:scale-95">
@@ -76,7 +76,29 @@
             Copy All
           </button>
         </div>
-        <pre id="agent-card-block" class="bg-black/30 rounded-xl px-5 py-4 mono text-sm text-white leading-relaxed whitespace-pre-wrap break-all cursor-pointer select-all hover:bg-black/40 transition-colors" onclick="copyAllAgentInfo()">Loading agent details...</pre>
+
+        <!-- Way 1: Direct URL -->
+        <div class="mb-4">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 rounded bg-white/20 text-xs font-bold text-white uppercase tracking-wide">Way 1 — Direct</span>
+            <span class="text-xs text-perch-300">No Nevermined account needed</span>
+          </div>
+          <div class="bg-black/30 rounded-xl px-5 py-3 mono text-sm text-white space-y-1.5">
+            <div><span class="text-perch-300">Pricing:  </span><span class="text-white">GET  <span id="services-url" class="text-perch-200">loading...</span></span></div>
+            <div><span class="text-perch-300">Buy:      </span><span class="text-white">POST <span id="analyze-url" class="text-perch-200">loading...</span></span></div>
+            <div><span class="text-perch-300">Demo:     </span><span class="text-white">POST <span id="demo-url" class="text-perch-200">loading...</span></span></div>
+          </div>
+        </div>
+
+        <!-- Way 2: Nevermined -->
+        <div class="mb-4">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 rounded bg-white/20 text-xs font-bold text-white uppercase tracking-wide">Way 2 — Nevermined x402</span>
+            <span class="text-xs text-perch-300">On-chain credit settlement</span>
+          </div>
+          <pre id="agent-card-block" class="bg-black/30 rounded-xl px-5 py-3 mono text-sm text-white leading-relaxed whitespace-pre-wrap break-all cursor-pointer select-all hover:bg-black/40 transition-colors" onclick="copyAllAgentInfo()">Loading...</pre>
+        </div>
+
         <div id="copy-toast" class="hidden mt-3 text-center text-sm text-perch-300 font-semibold fade-in">Copied to clipboard!</div>
       </div>
 
@@ -132,11 +154,29 @@
   <section class="max-w-2xl mx-auto -mt-8 relative z-20 px-6 mb-16">
     <div class="bg-white rounded-2xl shadow-xl border border-sand-200 p-8">
       <h3 class="text-xl font-bold text-gray-900 mb-1">Submit Your Agent</h3>
-      <p class="text-sm text-gray-500 mb-6">Paste your agent info below or fill out the form manually.</p>
+      <p class="text-sm text-gray-500 mb-6">Choose how you want Tallyfor AI to buy from you.</p>
 
-      <!-- Quick Paste Zone -->
+      <!-- Tabs -->
+      <div class="flex rounded-xl bg-sand-100 p-1 mb-6">
+        <button id="tab-nevermined" onclick="switchTab('nevermined')" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all bg-white text-gray-900 shadow">
+          Nevermined Agent
+        </button>
+        <button id="tab-direct" onclick="switchTab('direct')" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-gray-500 hover:text-gray-700">
+          Direct URL
+        </button>
+      </div>
+
+      <!-- Tab descriptions -->
+      <div id="desc-nevermined" class="mb-5 p-3 rounded-lg bg-perch-50 border border-perch-100 text-xs text-perch-800">
+        You have a Nevermined Plan ID + Agent ID. Tallyfor AI will buy from you using x402 on-chain credit settlement.
+      </div>
+      <div id="desc-direct" class="hidden mb-5 p-3 rounded-lg bg-tally-100 border border-tally-200 text-xs text-tally-800">
+        Just give us your seller URL. Tallyfor AI will POST directly to it — no Nevermined account needed.
+      </div>
+
+      <!-- Quick Paste Zone (Nevermined only) -->
       <div id="paste-zone" class="mb-6 relative">
-        <textarea id="paste-input" rows="8" placeholder="Paste your agent info here, e.g.:
+        <textarea id="paste-input" rows="6" placeholder="Paste your agent info here, e.g.:
 
 AgentBroker — Research Intelligence Broker
 Plan ID: did:nv:19855102282572468929...
@@ -147,7 +187,7 @@ Services: /search (1cr), /google (1cr), /summarize (2cr)" class="w-full px-4 py-
         <div id="parse-feedback" class="hidden mt-2 text-sm font-medium fade-in"></div>
       </div>
 
-      <div class="relative mb-6">
+      <div id="divider-or" class="relative mb-6">
         <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-sand-200"></div></div>
         <div class="relative flex justify-center"><span class="bg-white px-3 text-xs text-gray-400 uppercase tracking-wider">or fill manually</span></div>
       </div>
@@ -161,26 +201,35 @@ Services: /search (1cr), /google (1cr), /summarize (2cr)" class="w-full px-4 py-
           <input type="text" id="f-name" required placeholder="AgentBroker — Research Intelligence Broker" class="w-full px-4 py-2.5 rounded-lg border border-sand-200 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-perch-500 focus:border-perch-500 text-sm transition-all">
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Nevermined fields -->
+        <div id="nvm-fields" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Plan ID *</label>
-            <input type="text" id="f-planId" required placeholder="did:nv:1985510228..." class="w-full px-4 py-2.5 rounded-lg border border-sand-200 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-perch-500 focus:border-perch-500 text-sm mono transition-all">
+            <input type="text" id="f-planId" placeholder="did:nv:1985510228..." class="w-full px-4 py-2.5 rounded-lg border border-sand-200 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-perch-500 focus:border-perch-500 text-sm mono transition-all">
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Agent ID *</label>
-            <input type="text" id="f-agentId" required placeholder="did:nv:3861748222..." class="w-full px-4 py-2.5 rounded-lg border border-sand-200 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-perch-500 focus:border-perch-500 text-sm mono transition-all">
+            <input type="text" id="f-agentId" placeholder="did:nv:3861748222..." class="w-full px-4 py-2.5 rounded-lg border border-sand-200 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-perch-500 focus:border-perch-500 text-sm mono transition-all">
           </div>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Agent URL *</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <span id="url-label">Agent Base URL *</span>
+          </label>
           <input type="text" id="f-url" required placeholder="https://your-agent.up.railway.app" class="w-full px-4 py-2.5 rounded-lg border border-sand-200 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-perch-500 focus:border-perch-500 text-sm mono transition-all">
-          <p class="text-xs text-gray-400 mt-1">Must be publicly accessible. Use ngrok if running locally.</p>
+          <p id="url-hint" class="text-xs text-gray-400 mt-1">Must be publicly accessible. Use ngrok if running locally.</p>
+        </div>
+
+        <!-- Direct URL: seller endpoint hint -->
+        <div id="direct-endpoint-hint" class="hidden p-3 rounded-lg bg-sand-100 text-xs text-gray-600 mono">
+          We'll POST to: <span id="preview-endpoint" class="text-perch-700 font-semibold">https://your-agent.up.railway.app/api/analyze</span>
+          <br><span class="text-gray-400">Make sure this endpoint accepts POST with a JSON body.</span>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Services *</label>
-          <textarea id="f-services" required rows="3" placeholder="/search (1cr), /google (1cr), /summarize (2cr), /research (5cr)" class="w-full px-4 py-2.5 rounded-lg border border-sand-200 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-perch-500 focus:border-perch-500 text-sm mono transition-all resize-none"></textarea>
+          <textarea id="f-services" required rows="2" placeholder="/analyze (2cr), /report (5cr)" class="w-full px-4 py-2.5 rounded-lg border border-sand-200 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-perch-500 focus:border-perch-500 text-sm mono transition-all resize-none"></textarea>
           <p class="text-xs text-gray-400 mt-1">Format: /endpoint (credits), separated by commas</p>
         </div>
 
@@ -232,6 +281,52 @@ Services: /search (1cr), /google (1cr), /summarize (2cr)" class="w-full px-4 py-
 <script>
 const API = '/api/agents';
 let agentCard = null;
+let currentTab = 'nevermined';
+
+// ============================================================================
+// Tab switching
+// ============================================================================
+
+function switchTab(tab) {
+  currentTab = tab;
+  const isNvm = tab === 'nevermined';
+
+  // Tab buttons
+  document.getElementById('tab-nevermined').className = `flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${isNvm ? 'bg-white text-gray-900 shadow' : 'text-gray-500 hover:text-gray-700'}`;
+  document.getElementById('tab-direct').className = `flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${!isNvm ? 'bg-white text-gray-900 shadow' : 'text-gray-500 hover:text-gray-700'}`;
+
+  // Descriptions
+  document.getElementById('desc-nevermined').classList.toggle('hidden', !isNvm);
+  document.getElementById('desc-direct').classList.toggle('hidden', isNvm);
+
+  // Fields
+  document.getElementById('paste-zone').classList.toggle('hidden', !isNvm);
+  document.getElementById('divider-or').classList.toggle('hidden', !isNvm);
+  document.getElementById('nvm-fields').classList.toggle('hidden', !isNvm);
+  document.getElementById('direct-endpoint-hint').classList.toggle('hidden', isNvm);
+
+  // URL label/hint
+  document.getElementById('url-label').textContent = isNvm ? 'Agent Base URL *' : 'Your Seller URL *';
+  document.getElementById('url-hint').textContent = isNvm
+    ? 'Must be publicly accessible. Use ngrok if running locally.'
+    : 'The POST endpoint Tallyfor AI will call to buy your service.';
+  document.getElementById('f-url').placeholder = isNvm
+    ? 'https://your-agent.up.railway.app'
+    : 'https://your-agent.up.railway.app/api/analyze';
+
+  updateEndpointPreview();
+}
+
+function updateEndpointPreview() {
+  const url = document.getElementById('f-url').value.trim().replace(/\/$/, '');
+  if (url) {
+    document.getElementById('preview-endpoint').textContent = url;
+  } else {
+    document.getElementById('preview-endpoint').textContent = 'https://your-agent.up.railway.app/api/analyze';
+  }
+}
+
+document.getElementById('f-url').addEventListener('input', updateEndpointPreview);
 
 // ============================================================================
 // Agent Card — load our details and populate
@@ -243,22 +338,27 @@ async function loadAgentCard() {
     if (!r.ok) return;
     agentCard = await r.json();
 
-    const block = `${agentCard.name}\nPlan ID: ${agentCard.planId}\nAgent ID: ${agentCard.agentId}\nURL: ${agentCard.url}\nServices: ${agentCard.services}`;
+    const base = agentCard.url;
+    document.getElementById('services-url').textContent = `${base}/api/services`;
+    document.getElementById('analyze-url').textContent = `${base}/api/analyze`;
+    document.getElementById('demo-url').textContent = `${base}/api/demo`;
+
+    const block = `${agentCard.name}\nPlan ID: ${agentCard.planId}\nAgent ID: ${agentCard.agentId}\nSell endpoint: ${base}/api/analyze\nServices:  GET  ${base}/api/services`;
     document.getElementById('agent-card-block').textContent = block;
 
-    // Populate modal text
     document.getElementById('modal-agent-text').innerHTML =
       `<div><strong>Name:</strong> ${agentCard.name}</div>` +
       `<div><strong>Plan ID:</strong> ${agentCard.planId}</div>` +
       `<div><strong>Agent ID:</strong> ${agentCard.agentId}</div>` +
-      `<div><strong>URL:</strong> ${agentCard.url}</div>` +
-      `<div><strong>Services:</strong> ${agentCard.services}</div>`;
+      `<div><strong>Buy (direct):</strong> POST ${base}/api/analyze</div>` +
+      `<div><strong>Pricing:</strong> GET ${base}/api/services</div>`;
   } catch {}
 }
 
 function copyAllAgentInfo() {
   if (!agentCard) return;
-  const text = `${agentCard.name}\nPlan ID: ${agentCard.planId}\nAgent ID: ${agentCard.agentId}\nURL: ${agentCard.url}\nServices: ${agentCard.services}`;
+  const base = agentCard.url;
+  const text = `${agentCard.name}\nPlan ID: ${agentCard.planId}\nAgent ID: ${agentCard.agentId}\nSell endpoint: POST ${base}/api/analyze\nPricing: GET ${base}/api/services`;
   navigator.clipboard.writeText(text);
   const btn = document.getElementById('copy-all-btn');
   btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> Copied!';
@@ -395,18 +495,23 @@ document.getElementById('agent-form').addEventListener('submit', async (e) => {
   btn.textContent = 'Submitting...';
 
   try {
+    const isNvm = currentTab === 'nevermined';
+    const body = {
+      name: document.getElementById('f-name').value,
+      url: document.getElementById('f-url').value,
+      services,
+      buyType: currentTab,
+      submitterName: document.getElementById('f-submitter').value || undefined,
+      description: document.getElementById('f-desc').value || undefined,
+      ...(isNvm ? {
+        planId: document.getElementById('f-planId').value,
+        agentId: document.getElementById('f-agentId').value,
+      } : {}),
+    };
     const resp = await fetch(API + '/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: document.getElementById('f-name').value,
-        planId: document.getElementById('f-planId').value,
-        agentId: document.getElementById('f-agentId').value,
-        url: document.getElementById('f-url').value,
-        services,
-        submitterName: document.getElementById('f-submitter').value || undefined,
-        description: document.getElementById('f-desc').value || undefined,
-      }),
+      body: JSON.stringify(body),
     });
 
     const data = await resp.json();
@@ -459,9 +564,12 @@ function renderAgent(agent) {
 
   return `
     <div class="bg-white rounded-xl border border-sand-200 p-5 hover:shadow-lg transition-all fade-in relative">
-      <div class="absolute top-4 right-4">
+      <div class="absolute top-4 right-4 flex flex-col items-end gap-1">
         <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${statusColors[agent.status]}">
           ${statusIcons[agent.status]} ${agent.status}
+        </span>
+        <span class="px-2 py-0.5 rounded text-xs font-medium ${agent.buyType === 'direct' ? 'bg-tally-100 text-tally-800' : 'bg-perch-100 text-perch-700'}">
+          ${agent.buyType === 'direct' ? 'Direct' : 'Nevermined'}
         </span>
       </div>
 
