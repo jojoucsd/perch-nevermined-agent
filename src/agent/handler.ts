@@ -19,7 +19,7 @@ import {
   analyzePersonalReturnFiling,
 } from '../finance/analysis.js'
 import { generateNarrative } from './reasoning.js'
-import { rtdb } from '../firebase/config.js'
+import { recordQuery } from '../data/store.js'
 
 export function getCreditsForQuery(queryType: QueryType): number {
   return SERVICE_CATALOG[queryType]?.credits ?? 1
@@ -127,17 +127,7 @@ export async function handleAnalysisRequest(request: AnalysisRequest): Promise<A
   }
 
   // Update stats
-  try {
-    const statsRef = rtdb.ref('/stats')
-    const snap = await statsRef.get()
-    const stats = snap.val() || { totalQueries: 0, totalCreditsEarned: 0, queriesByType: {} }
-    stats.totalQueries += 1
-    stats.totalCreditsEarned += credits
-    stats.queriesByType[query_type] = (stats.queriesByType[query_type] || 0) + 1
-    await statsRef.set(stats)
-  } catch {
-    // non-critical
-  }
+  recordQuery(query_type, credits)
 
   return {
     query_type,

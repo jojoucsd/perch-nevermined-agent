@@ -2,7 +2,6 @@
 
 import { Router, Request, Response } from 'express'
 import type { DiscoveredAgent } from '../buyer/types.js'
-import { rtdb } from '../firebase/config.js'
 
 // ============================================================================
 // Types
@@ -44,26 +43,16 @@ interface SubmittedAgent {
 }
 
 // ============================================================================
-// In-Memory Store + Firebase RTDB
+// In-Memory Store
 // ============================================================================
 
 const agents = new Map<string, SubmittedAgent>()
-const RTDB_PATH = '/submitted-agents'
 
-export async function loadSubmittedAgents(): Promise<void> {
-  try {
-    const snap = await rtdb.ref(RTDB_PATH).get()
-    const data = snap.val() || {}
-    for (const [id, agent] of Object.entries(data)) {
-      agents.set(id, agent as SubmittedAgent)
-    }
-    console.log(`[Connect] Loaded ${agents.size} submitted agents from Firebase`)
-  } catch (err: any) {
-    console.error('[Connect] Failed to load from Firebase:', err.message)
-  }
+export function loadSubmittedAgents(): void {
+  // no-op: in-memory only
 }
 
-async function saveAgent(submission: AgentSubmission): Promise<SubmittedAgent> {
+function saveAgent(submission: AgentSubmission): SubmittedAgent {
   const id = `submitted-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
   const agent: SubmittedAgent = {
     id,
@@ -78,28 +67,18 @@ async function saveAgent(submission: AgentSubmission): Promise<SubmittedAgent> {
     status: 'pending',
   }
   agents.set(id, agent)
-  try {
-    await rtdb.ref(`${RTDB_PATH}/${id}`).set(agent)
-  } catch {
-    // non-critical — in-memory is primary
-  }
   return agent
 }
 
-async function updateStatus(
+function updateStatus(
   id: string,
   status: SubmittedAgent['status'],
   purchaseResult?: SubmittedAgent['purchaseResult'],
-): Promise<void> {
+): void {
   const agent = agents.get(id)
   if (!agent) return
   agent.status = status
   if (purchaseResult) agent.purchaseResult = purchaseResult
-  try {
-    await rtdb.ref(`${RTDB_PATH}/${id}`).update({ status, purchaseResult: purchaseResult || null })
-  } catch {
-    // non-critical
-  }
 }
 
 function isDuplicate(agentId: string): boolean {

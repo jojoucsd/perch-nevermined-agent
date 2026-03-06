@@ -1,7 +1,7 @@
 // Tallyfor AI — Tax & Finance Expert Agent — Shared Types
 
 // ============================================================================
-// Firebase / Data Models
+// Data Models
 // ============================================================================
 
 export interface Owner {

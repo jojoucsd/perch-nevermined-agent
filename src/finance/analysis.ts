@@ -1,6 +1,5 @@
 // High-level analysis functions — Property, Portfolio, Entity Recommendation
 
-import { db } from '../firebase/config.js'
 import type { Owner, Entity, Property, LedgerEntry } from '../types.js'
 import { CHART_OF_ACCOUNTS } from '../types.js'
 import { calculateNOI, getEntityPnL } from './trial-balance.js'
@@ -11,45 +10,15 @@ import {
   calculateSETax,
   type FilingStatus,
 } from './tax-engine.js'
-
-// ============================================================================
-// Firebase Query Helpers
-// ============================================================================
-
-async function getOwner(ownerId: string): Promise<Owner | null> {
-  const doc = await db.collection('owners').doc(ownerId).get()
-  return doc.exists ? (doc.data() as Owner) : null
-}
-
-async function getEntity(entityId: string): Promise<Entity | null> {
-  const doc = await db.collection('entities').doc(entityId).get()
-  return doc.exists ? (doc.data() as Entity) : null
-}
-
-async function getProperty(propertyId: string): Promise<Property | null> {
-  const doc = await db.collection('properties').doc(propertyId).get()
-  return doc.exists ? (doc.data() as Property) : null
-}
-
-async function getPropertiesByEntity(entityId: string): Promise<Property[]> {
-  const snap = await db.collection('properties').where('entityId', '==', entityId).get()
-  return snap.docs.map(d => d.data() as Property)
-}
-
-async function getLedgerByEntity(entityId: string): Promise<LedgerEntry[]> {
-  const snap = await db.collection('ledger').where('entityId', '==', entityId).get()
-  return snap.docs.map(d => d.data() as LedgerEntry)
-}
-
-async function getLedgerByProperty(propertyId: string): Promise<LedgerEntry[]> {
-  const snap = await db.collection('ledger').where('propertyId', '==', propertyId).get()
-  return snap.docs.map(d => d.data() as LedgerEntry)
-}
-
-async function getAllEntitiesByOwner(ownerId: string): Promise<Entity[]> {
-  const snap = await db.collection('entities').where('ownerId', '==', ownerId).get()
-  return snap.docs.map(d => d.data() as Entity)
-}
+import {
+  getOwner,
+  getEntity,
+  getProperty,
+  getPropertiesByEntity,
+  getLedgerByEntity,
+  getLedgerByProperty,
+  getAllEntitiesByOwner,
+} from '../data/store.js'
 
 // ============================================================================
 // Property NOI Analysis
