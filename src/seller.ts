@@ -6,7 +6,7 @@ import { Payments, buildPaymentRequired } from '@nevermined-io/payments'
 import { handleAnalysisRequest, getCreditsForQuery } from './agent/handler.js'
 import { SERVICE_CATALOG } from './types.js'
 import type { AnalysisRequest, QueryType } from './types.js'
-import { rtdb } from './firebase/config.js'
+import { stats } from './data/store.js'
 
 const app = express()
 app.use(express.json())
@@ -107,20 +107,14 @@ app.get('/api/agent-card', (_req: Request, res: Response) => {
 // Health check
 // ============================================================================
 
-app.get('/api/health', async (_req: Request, res: Response) => {
-  try {
-    const snap = await rtdb.ref('/stats').get()
-    const stats = snap.val() || {}
-    res.json({
-      status: 'ok',
-      agent: 'Tallyfor AI Tax & Finance Expert',
-      agentId: AGENT_ID,
-      planId: PLAN_ID,
-      stats,
-    })
-  } catch {
-    res.json({ status: 'ok', agentId: AGENT_ID, planId: PLAN_ID })
-  }
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({
+    status: 'ok',
+    agent: 'Tallyfor AI Tax & Finance Expert',
+    agentId: AGENT_ID,
+    planId: PLAN_ID,
+    stats,
+  })
 })
 
 // ============================================================================
@@ -517,7 +511,7 @@ app.post('/api/nevermined/demo-flow', async (req: Request, res: Response) => {
   steps.push({
     step: 5,
     action: 'Analysis Engine',
-    detail: `Ran ${body.query_type} analysis against Firebase data`,
+    detail: `Ran ${body.query_type} analysis`,
     timestamp: new Date().toISOString(),
     durationMs: Date.now() - step5Start,
     data: { queryType: body.query_type, creditsUsed: result.credits_used },

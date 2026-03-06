@@ -10,7 +10,6 @@
     "buy": "node --loader ts-node/esm src/buyer.ts",
     "buyer:dev": "node --loader ts-node/esm src/autonomous-buyer.ts",
     "buyer": "node dist/autonomous-buyer.js",
-    "seed": "node --loader ts-node/esm src/firebase/seed.ts",
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -24,7 +23,6 @@
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "firebase-admin": "^13.7.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
