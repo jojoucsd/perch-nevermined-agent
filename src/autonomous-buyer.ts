@@ -174,6 +174,7 @@ export const buyerRouter = createBuyerRouter({
 
 export async function purchaseFromSubmitted(
   agent: DiscoveredAgent,
+  customBody?: Record<string, unknown>,
 ): Promise<{ success: boolean; responseTimeMs: number; satisfactionScore: number; error?: string }> {
   // Add to discovered pool
   if (!discoveredAgents.find(a => a.agentId === agent.agentId)) {
@@ -186,7 +187,7 @@ export async function purchaseFromSubmitted(
     return { success: false, responseTimeMs: 0, satisfactionScore: 0, error: 'Budget exhausted' }
   }
 
-  const query = buildQuery(agent)
+  const query = customBody || buildQuery(agent)
   const record = await executePurchase(payments, agent, query)
   budget.recordPurchase(record)
 

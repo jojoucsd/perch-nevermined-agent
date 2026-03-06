@@ -122,7 +122,7 @@ export function toDiscoveredAgent(submitted: SubmittedAgent): DiscoveredAgent {
 // Auto-Purchase Trigger
 // ============================================================================
 
-type PurchaseTrigger = (agent: DiscoveredAgent) => Promise<{ success: boolean; responseTimeMs: number; satisfactionScore: number; error?: string }>
+type PurchaseTrigger = (agent: DiscoveredAgent, customBody?: Record<string, unknown>) => Promise<{ success: boolean; responseTimeMs: number; satisfactionScore: number; error?: string }>
 
 let onNewAgent: PurchaseTrigger | null = null
 let onTestBuy: PurchaseTrigger | null = null
@@ -190,7 +190,7 @@ export function createConnectRouter(): Router {
 
   // POST /test-buy — test buy from an agent without submitting it
   router.post('/test-buy', async (req: Request, res: Response) => {
-    const { buyType, planId, agentId, url, name } = req.body
+    const { buyType, planId, agentId, url, name, customBody } = req.body
 
     if (!onTestBuy) {
       res.status(503).json({ error: 'Buyer not available — set BUYER_API_KEY to enable' })
@@ -218,11 +218,11 @@ export function createConnectRouter(): Router {
       endpoint: url?.trim() || '',
       creditsPerPlan: 100,
       buyType: buyType === 'direct' ? 'direct' : 'nevermined',
-      serviceCatalog: [],
+      serviceCatalog: [{ query_type: 'property_noi', credits: 2, description: 'Property NOI analysis' }],
     }
 
     try {
-      const result = await onTestBuy(agent)
+      const result = await onTestBuy(agent, customBody)
       res.json({ success: result.success, responseTimeMs: result.responseTimeMs, satisfactionScore: result.satisfactionScore, error: result.error })
     } catch (err: any) {
       console.error('[TestBuy] Error:', err.message, err.stack?.slice(0, 300))
