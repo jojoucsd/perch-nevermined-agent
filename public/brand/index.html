@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tallyfor AI — Brand Guidelines</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            perch: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' },
+            sand: { 50: '#FCFCFC', 100: '#F5F6F7', 200: '#E6E9EC', 300: '#D3D7DC', 400: '#B1B8C0', 500: '#858D97', 600: '#6A7582', 700: '#485461', 800: '#394450', 900: '#181F28' },
+            coral: { 400: '#F57E77', 500: '#E0645C' },
+            tally: { 100: '#EEF5FD', 200: '#DBE8F6', 400: '#9CC7F8', 500: '#5FA4F3', 600: '#2C87EF', 800: '#1763BA' },
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .swatch { transition: all 0.15s ease; cursor: pointer; }
+    .swatch:hover { transform: scale(1.05); }
+    .swatch:active { transform: scale(0.97); }
+    .copied { animation: copiedFlash 0.6s ease; }
+    @keyframes copiedFlash {
+      0% { box-shadow: 0 0 0 0 rgba(14,165,150,0.5); }
+      50% { box-shadow: 0 0 0 8px rgba(14,165,150,0); }
+      100% { box-shadow: 0 0 0 0 rgba(14,165,150,0); }
+    }
+  </style>
+</head>
+<body class="bg-white text-sand-900 min-h-screen">
+
+  <!-- Header -->
+  <header class="border-b border-sand-200 py-8 px-8">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <img src="/img/tallyfor-icon.png" alt="Tallyfor" class="w-12 h-12 rounded-xl shadow">
+        <div>
+          <h1 class="text-2xl font-extrabold text-sand-900">Tallyfor AI</h1>
+          <p class="text-sm text-sand-500">Brand Guidelines</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="/" class="px-4 py-2 text-sm font-medium rounded-lg text-sand-500 hover:text-sand-700 hover:bg-sand-100 transition-all">Seller</a>
+        <a href="/buyer/" class="px-4 py-2 text-sm font-medium rounded-lg text-sand-500 hover:text-sand-700 hover:bg-sand-100 transition-all">Buyer</a>
+        <a href="/connect/" class="px-4 py-2 text-sm font-medium rounded-lg text-sand-500 hover:text-sand-700 hover:bg-sand-100 transition-all">Connect</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-8 py-12 space-y-16">
+
+    <!-- Toast -->
+    <div id="toast" class="fixed top-6 right-6 z-50 hidden px-4 py-2.5 rounded-lg bg-sand-800 text-white text-sm font-medium mono shadow-xl transition-all">
+      Copied <span id="toast-val"></span>
+    </div>
+
+    <!-- Logo -->
+    <section>
+      <h2 class="text-lg font-bold text-sand-900 mb-1">Logo</h2>
+      <p class="text-sm text-sand-500 mb-6">Primary icon mark. Use on light backgrounds.</p>
+      <div class="flex items-center gap-8">
+        <div class="p-6 rounded-2xl bg-white border border-sand-200 shadow-sm">
+          <img src="/img/tallyfor-icon.png" alt="Tallyfor" class="w-24 h-24">
+        </div>
+        <div class="p-6 rounded-2xl bg-sand-900">
+          <img src="/img/tallyfor-icon.png" alt="Tallyfor" class="w-24 h-24">
+        </div>
+        <div class="p-6 rounded-2xl bg-sand-100">
+          <img src="/img/tallyfor-icon.png" alt="Tallyfor" class="w-24 h-24">
+        </div>
+      </div>
+    </section>
+
+    <!-- Typography -->
+    <section>
+      <h2 class="text-lg font-bold text-sand-900 mb-1">Typography</h2>
+      <p class="text-sm text-sand-500 mb-6">Inter for UI, JetBrains Mono for code and data.</p>
+      <div class="grid grid-cols-2 gap-6">
+        <div class="p-6 rounded-xl border border-sand-200">
+          <p class="text-xs text-sand-400 uppercase tracking-wider mb-3">Inter</p>
+          <p class="text-3xl font-extrabold mb-1">Tallyfor AI</p>
+          <p class="text-xl font-bold mb-1">Autonomous Tax Agent</p>
+          <p class="text-base font-medium mb-1">Section headings use semibold</p>
+          <p class="text-sm text-sand-600">Body text uses regular weight at 14px</p>
+        </div>
+        <div class="p-6 rounded-xl border border-sand-200">
+          <p class="text-xs text-sand-400 uppercase tracking-wider mb-3">JetBrains Mono</p>
+          <p class="text-lg mono font-medium mb-1">did:nv:8756839168...</p>
+          <p class="text-base mono mb-1">/api/analyze → 200 OK</p>
+          <p class="text-sm mono text-sand-600">credits_used: 3</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Primary Colors: Tallyfor Brand -->
+    <section>
+      <h2 class="text-lg font-bold text-sand-900 mb-1">Primary Colors — Tallyfor Brand</h2>
+      <p class="text-sm text-sand-500 mb-6">Click any swatch to copy its hex value.</p>
+
+      <!-- Coral / Brand Red -->
+      <h3 class="text-sm font-semibold text-sand-700 uppercase tracking-wider mb-3">Coral (Brand Red)</h3>
+      <p class="text-xs text-sand-400 mb-3">Tailwind: <span class="mono">coral-400</span>, <span class="mono">coral-500</span></p>
+      <div class="flex gap-3 mb-8">
+        <div onclick="copy('#F57E77','coral-400')" class="swatch flex-1 h-20 rounded-xl flex items-end p-3 shadow-sm" style="background:#F57E77">
+          <div>
+            <p class="text-xs font-semibold text-white/80">400</p>
+            <p class="text-sm mono font-medium text-white">#F57E77</p>
+          </div>
+        </div>
+        <div onclick="copy('#E0645C','coral-500')" class="swatch flex-1 h-20 rounded-xl flex items-end p-3 shadow-sm relative" style="background:#E0645C">
+          <span class="absolute top-2 right-2 text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded-full font-medium">Brand</span>
+          <div>
+            <p class="text-xs font-semibold text-white/80">500</p>
+            <p class="text-sm mono font-medium text-white">#E0645C</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Blue -->
+      <h3 class="text-sm font-semibold text-sand-700 uppercase tracking-wider mb-3">Tally Blue</h3>
+      <p class="text-xs text-sand-400 mb-3">Tailwind: <span class="mono">tally-100</span> through <span class="mono">tally-800</span></p>
+      <div class="flex gap-3 mb-8">
+        <div onclick="copy('#EEF5FD','tally-100')" class="swatch flex-1 h-20 rounded-xl flex items-end p-3 border border-sand-200" style="background:#EEF5FD">
+          <div><p class="text-xs font-semibold text-sand-400">100</p><p class="text-sm mono font-medium text-sand-700">#EEF5FD</p></div>
+        </div>
+        <div onclick="copy('#DBE8F6','tally-200')" class="swatch flex-1 h-20 rounded-xl flex items-end p-3" style="background:#DBE8F6">
+          <div><p class="text-xs font-semibold text-sand-500">200</p><p class="text-sm mono font-medium text-sand-700">#DBE8F6</p></div>
+        </div>
+        <div onclick="copy('#9CC7F8','tally-400')" class="swatch flex-1 h-20 rounded-xl flex items-end p-3" style="background:#9CC7F8">
+          <div><p class="text-xs font-semibold text-white/70">400</p><p class="text-sm mono font-medium text-white">#9CC7F8</p></div>
+        </div>
+        <div onclick="copy('#5FA4F3','tally-500')" class="swatch flex-1 h-20 rounded-xl flex items-end p-3" style="background:#5FA4F3">
+          <div><p class="text-xs font-semibold text-white/70">500</p><p class="text-sm mono font-medium text-white">#5FA4F3</p></div>
+        </div>
+        <div onclick="copy('#2C87EF','tally-600')" class="swatch flex-1 h-20 rounded-xl flex items-end p-3 relative" style="background:#2C87EF">
+          <span class="absolute top-2 right-2 text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded-full font-medium">Primary</span>
+          <div><p class="text-xs font-semibold text-white/70">600</p><p class="text-sm mono font-medium text-white">#2C87EF</p></div>
+        </div>
+        <div onclick="copy('#1763BA','tally-800')" class="swatch flex-1 h-20 rounded-xl flex items-end p-3" style="background:#1763BA">
+          <div><p class="text-xs font-semibold text-white/70">800</p><p class="text-sm mono font-medium text-white">#1763BA</p></div>
+        </div>
+      </div>
+
+      <!-- Grays -->
+      <h3 class="text-sm font-semibold text-sand-700 uppercase tracking-wider mb-3">Gray</h3>
+      <p class="text-xs text-sand-400 mb-3">Tailwind: <span class="mono">sand-50</span> through <span class="mono">sand-900</span></p>
+      <div class="flex gap-2 mb-8">
+        <div onclick="copy('#FCFCFC','sand-50')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2 border border-sand-200" style="background:#FCFCFC">
+          <div><p class="text-[10px] font-semibold text-sand-400">50</p><p class="text-xs mono text-sand-500">#FCFCFC</p></div>
+        </div>
+        <div onclick="copy('#F5F6F7','sand-100')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2 border border-sand-200" style="background:#F5F6F7">
+          <div><p class="text-[10px] font-semibold text-sand-400">100</p><p class="text-xs mono text-sand-500">#F5F6F7</p></div>
+        </div>
+        <div onclick="copy('#E6E9EC','sand-200')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#E6E9EC">
+          <div><p class="text-[10px] font-semibold text-sand-400">200</p><p class="text-xs mono text-sand-500">#E6E9EC</p></div>
+        </div>
+        <div onclick="copy('#D3D7DC','sand-300')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#D3D7DC">
+          <div><p class="text-[10px] font-semibold text-sand-500">300</p><p class="text-xs mono text-sand-600">#D3D7DC</p></div>
+        </div>
+        <div onclick="copy('#B1B8C0','sand-400')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#B1B8C0">
+          <div><p class="text-[10px] font-semibold text-sand-600">400</p><p class="text-xs mono text-sand-700">#B1B8C0</p></div>
+        </div>
+        <div onclick="copy('#858D97','sand-500')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#858D97">
+          <div><p class="text-[10px] font-semibold text-white/60">500</p><p class="text-xs mono text-white/80">#858D97</p></div>
+        </div>
+        <div onclick="copy('#6A7582','sand-600')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#6A7582">
+          <div><p class="text-[10px] font-semibold text-white/60">600</p><p class="text-xs mono text-white/80">#6A7582</p></div>
+        </div>
+        <div onclick="copy('#485461','sand-700')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#485461">
+          <div><p class="text-[10px] font-semibold text-white/60">700</p><p class="text-xs mono text-white/80">#485461</p></div>
+        </div>
+        <div onclick="copy('#394450','sand-800')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2 relative" style="background:#394450">
+          <span class="absolute top-1.5 right-1.5 text-[9px] bg-white/20 text-white px-1 py-0.5 rounded-full font-medium">Primary</span>
+          <div><p class="text-[10px] font-semibold text-white/60">800</p><p class="text-xs mono text-white/80">#394450</p></div>
+        </div>
+        <div onclick="copy('#181F28','sand-900')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2 relative" style="background:#181F28">
+          <span class="absolute top-1.5 right-1.5 text-[9px] bg-white/20 text-white px-1 py-0.5 rounded-full font-medium">Darkest</span>
+          <div><p class="text-[10px] font-semibold text-white/60">900</p><p class="text-xs mono text-white/80">#181F28</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Secondary: AI Teal -->
+    <section>
+      <h2 class="text-lg font-bold text-sand-900 mb-1">Secondary — AI Teal</h2>
+      <p class="text-sm text-sand-500 mb-6">Accent color for the .ai product. Buttons, highlights, success states.</p>
+      <p class="text-xs text-sand-400 mb-3">Tailwind: <span class="mono">perch-50</span> through <span class="mono">perch-900</span></p>
+      <div class="flex gap-2 mb-4">
+        <div onclick="copy('#f0fdfa','perch-50')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2 border border-sand-200" style="background:#f0fdfa">
+          <div><p class="text-[10px] font-semibold text-sand-400">50</p><p class="text-xs mono text-sand-500">#f0fdfa</p></div>
+        </div>
+        <div onclick="copy('#ccfbf1','perch-100')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#ccfbf1">
+          <div><p class="text-[10px] font-semibold text-sand-400">100</p><p class="text-xs mono text-sand-500">#ccfbf1</p></div>
+        </div>
+        <div onclick="copy('#99f6e4','perch-200')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#99f6e4">
+          <div><p class="text-[10px] font-semibold text-sand-500">200</p><p class="text-xs mono text-sand-600">#99f6e4</p></div>
+        </div>
+        <div onclick="copy('#5eead4','perch-300')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#5eead4">
+          <div><p class="text-[10px] font-semibold text-sand-600">300</p><p class="text-xs mono text-sand-700">#5eead4</p></div>
+        </div>
+        <div onclick="copy('#2dd4bf','perch-400')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#2dd4bf">
+          <div><p class="text-[10px] font-semibold text-white/70">400</p><p class="text-xs mono text-white">#2dd4bf</p></div>
+        </div>
+        <div onclick="copy('#14b8a6','perch-500')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2 relative" style="background:#14b8a6">
+          <span class="absolute top-1.5 right-1.5 text-[9px] bg-white/20 text-white px-1 py-0.5 rounded-full font-medium">Primary</span>
+          <div><p class="text-[10px] font-semibold text-white/70">500</p><p class="text-xs mono text-white">#14b8a6</p></div>
+        </div>
+        <div onclick="copy('#0d9488','perch-600')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#0d9488">
+          <div><p class="text-[10px] font-semibold text-white/70">600</p><p class="text-xs mono text-white">#0d9488</p></div>
+        </div>
+        <div onclick="copy('#0f766e','perch-700')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#0f766e">
+          <div><p class="text-[10px] font-semibold text-white/70">700</p><p class="text-xs mono text-white">#0f766e</p></div>
+        </div>
+        <div onclick="copy('#115e59','perch-800')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#115e59">
+          <div><p class="text-[10px] font-semibold text-white/70">800</p><p class="text-xs mono text-white">#115e59</p></div>
+        </div>
+        <div onclick="copy('#134e4a','perch-900')" class="swatch flex-1 h-20 rounded-xl flex items-end p-2" style="background:#134e4a">
+          <div><p class="text-[10px] font-semibold text-white/70">900</p><p class="text-xs mono text-white">#134e4a</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Usage Examples -->
+    <section>
+      <h2 class="text-lg font-bold text-sand-900 mb-1">Usage Examples</h2>
+      <p class="text-sm text-sand-500 mb-6">How colors map to UI elements.</p>
+
+      <div class="grid grid-cols-3 gap-6">
+        <!-- Buttons -->
+        <div class="p-6 rounded-xl border border-sand-200 space-y-3">
+          <p class="text-xs text-sand-400 uppercase tracking-wider mb-2">Buttons</p>
+          <button class="w-full py-2.5 px-4 rounded-lg bg-perch-600 text-white text-sm font-semibold hover:bg-perch-500 transition">Primary Action</button>
+          <button class="w-full py-2.5 px-4 rounded-lg bg-tally-600 text-white text-sm font-semibold hover:bg-tally-500 transition">Secondary Action</button>
+          <button class="w-full py-2.5 px-4 rounded-lg border border-sand-300 text-sand-700 text-sm font-medium hover:bg-sand-100 transition">Tertiary</button>
+          <button class="w-full py-2.5 px-4 rounded-lg bg-coral-500 text-white text-sm font-semibold hover:bg-coral-400 transition">Destructive</button>
+        </div>
+
+        <!-- Badges -->
+        <div class="p-6 rounded-xl border border-sand-200 space-y-3">
+          <p class="text-xs text-sand-400 uppercase tracking-wider mb-2">Badges & Status</p>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2.5 py-1 rounded-full bg-perch-100 text-perch-700 text-xs font-medium">Success</span>
+            <span class="px-2.5 py-1 rounded-full bg-tally-100 text-tally-800 text-xs font-medium">Info</span>
+            <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">Warning</span>
+            <span class="px-2.5 py-1 rounded-full bg-red-100 text-coral-500 text-xs font-medium">Error</span>
+            <span class="px-2.5 py-1 rounded-full bg-sand-200 text-sand-600 text-xs font-medium">Neutral</span>
+          </div>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-perch-50 text-perch-700 text-xs font-medium border border-perch-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-perch-500"></span> Connected
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Pending
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-red-700 text-xs font-medium border border-red-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Failed
+            </span>
+          </div>
+        </div>
+
+        <!-- Cards -->
+        <div class="p-6 rounded-xl border border-sand-200 space-y-3">
+          <p class="text-xs text-sand-400 uppercase tracking-wider mb-2">Card Styles</p>
+          <div class="p-4 rounded-lg bg-sand-50 border border-sand-200">
+            <p class="text-sm font-semibold text-sand-800">Default Card</p>
+            <p class="text-xs text-sand-500">sand-50 bg, sand-200 border</p>
+          </div>
+          <div class="p-4 rounded-lg bg-perch-50 border border-perch-200">
+            <p class="text-sm font-semibold text-perch-800">Highlight Card</p>
+            <p class="text-xs text-perch-600">perch-50 bg, perch-200 border</p>
+          </div>
+          <div class="p-4 rounded-lg bg-sand-800 text-white">
+            <p class="text-sm font-semibold">Dark Card</p>
+            <p class="text-xs text-sand-400">sand-800 bg</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tailwind Config -->
+    <section>
+      <h2 class="text-lg font-bold text-sand-900 mb-1">Tailwind Config</h2>
+      <p class="text-sm text-sand-500 mb-4">Copy this into your tailwind.config.</p>
+      <div class="relative">
+        <button onclick="copyBlock()" class="absolute top-3 right-3 px-3 py-1.5 rounded-lg bg-sand-700 text-white text-xs font-medium hover:bg-sand-600 transition">Copy</button>
+        <pre class="p-6 rounded-xl bg-sand-900 text-sand-300 text-sm mono overflow-x-auto leading-relaxed"><code id="config-block">colors: {
+  perch: {
+    50:  '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4',
+    300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6',
+    600: '#0d9488', 700: '#0f766e', 800: '#115e59',
+    900: '#134e4a'
+  },
+  sand: {
+    50:  '#FCFCFC', 100: '#F5F6F7', 200: '#E6E9EC',
+    300: '#D3D7DC', 400: '#B1B8C0', 500: '#858D97',
+    600: '#6A7582', 700: '#485461', 800: '#394450',
+    900: '#181F28'
+  },
+  coral: { 400: '#F57E77', 500: '#E0645C' },
+  tally: {
+    100: '#EEF5FD', 200: '#DBE8F6', 400: '#9CC7F8',
+    500: '#5FA4F3', 600: '#2C87EF', 800: '#1763BA'
+  },
+}</code></pre>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-sand-200 py-6 mt-8">
+    <div class="max-w-6xl mx-auto px-8 text-center text-sm text-sand-400">
+      Tallyfor AI &mdash; Autonomous Tax Agent &mdash; Brand Guidelines v1.0
+    </div>
+  </footer>
+
+<script>
+let toastTimer;
+function copy(hex, name) {
+  navigator.clipboard.writeText(hex);
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-val').textContent = hex;
+  toast.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.add('hidden'), 1500);
+
+  // Flash the clicked swatch
+  event.currentTarget.classList.add('copied');
+  setTimeout(() => event.currentTarget.classList.remove('copied'), 600);
+}
+
+function copyBlock() {
+  const text = document.getElementById('config-block').textContent;
+  navigator.clipboard.writeText(text);
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-val').textContent = 'Tailwind config';
+  toast.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.add('hidden'), 1500);
+}
+</script>
+</body>
+</html>
