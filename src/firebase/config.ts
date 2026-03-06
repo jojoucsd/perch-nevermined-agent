@@ -14,9 +14,22 @@ if (!admin.apps.length) {
   const serviceAccountPath = resolve(process.cwd(), 'firebase-service-account.json')
 
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    // Railway converts \n in env vars to literal newlines — fix before parsing
-    const raw = process.env.FIREBASE_SERVICE_ACCOUNT.replace(/\n/g, '\\n')
-    const serviceAccount = JSON.parse(raw)
+    // Railway converts \n in env vars to literal newlines, breaking JSON.parse.
+    // Strategy: try parsing as-is, then fix newlines if it fails.
+    let serviceAccount: any
+    try {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+    } catch {
+      // Replace literal newlines with \\n so JSON.parse can handle them,
+      // but only inside quoted string values (between quotes)
+      const fixed = process.env.FIREBASE_SERVICE_ACCOUNT
+        .replace(/\r?\n/g, '\\n')
+      serviceAccount = JSON.parse(fixed)
+    }
+    // Ensure private_key has actual newlines (not escaped) for crypto
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n')
+    }
     app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       databaseURL: 'https://perch-hackathon-default-rtdb.firebaseio.com',
