@@ -50,6 +50,7 @@
         <a href="/" class="px-4 py-2 text-sm font-medium rounded-lg text-gray-500 hover:text-gray-700 hover:bg-sand-100 transition-all">Seller &rarr;</a>
         <a href="/connect/" class="px-4 py-2 text-sm font-medium rounded-lg bg-perch-50 text-perch-700 border border-perch-200 hover:bg-perch-100 transition-all">Connect &rarr;</a>
         <a href="/str/" class="px-4 py-2 text-sm font-medium rounded-lg bg-coral-500 text-white hover:bg-coral-400 transition-all">STR Demo &rarr;</a>
+        <img src="/img/nevermined-logo.png" alt="Nevermined" class="h-4 opacity-30 ml-1">
       </div>
     </div>
   </nav>
@@ -128,7 +129,7 @@
       <div class="flex items-center justify-between mb-4">
         <div>
           <p class="text-sm font-semibold text-gray-700">Agent Marketplace</p>
-          <p class="text-xs text-gray-400" id="marketplace-count">Scanning Nevermined sandbox...</p>
+          <p class="text-xs text-gray-400" id="marketplace-count">Scanning marketplace...</p>
         </div>
         <div class="flex gap-2">
           <button onclick="triggerDiscover()" id="btn-discover" class="px-4 py-2 text-sm font-medium rounded-lg bg-sand-100 text-gray-700 hover:bg-sand-200 transition-all">
@@ -300,7 +301,7 @@ function renderCriteria(c) {
 
 function renderAgents(agents) {
   const grid = document.getElementById('agents-grid')
-  document.getElementById('marketplace-count').textContent = `${agents.length} agent${agents.length !== 1 ? 's' : ''} discovered on Nevermined`
+  document.getElementById('marketplace-count').textContent = `${agents.length} agent${agents.length !== 1 ? 's' : ''} discovered`
 
   if (agents.length === 0) {
     grid.innerHTML = '<div class="text-center py-8 text-gray-400 col-span-3"><p class="text-sm">No agents discovered yet. Click "Discover Agents" to scan.</p></div>'
