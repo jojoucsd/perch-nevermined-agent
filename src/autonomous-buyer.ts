@@ -1,12 +1,11 @@
 import 'dotenv/config'
-import express, { Request, Response } from 'express'
-import cors from 'cors'
 import { Payments } from '@nevermined-io/payments'
 import { discoverAgents } from './buyer/discovery.js'
 import { scoreAgent, shouldPurchase } from './buyer/evaluator.js'
 import { executePurchase, buildQuery } from './buyer/purchaser.js'
 import { BudgetManager } from './buyer/budget.js'
-import type { DiscoveredAgent, PurchaseRecord, AgentScore } from './buyer/types.js'
+import { createBuyerRouter } from './buyer/routes.js'
+import type { DiscoveredAgent, AgentScore } from './buyer/types.js'
 
 // ============================================================================
 // Init
@@ -118,113 +117,55 @@ async function runAutonomousCycle() {
 }
 
 // ============================================================================
-// Express API
+// Exported Router + Loop Starter
 // ============================================================================
 
-const app = express()
-app.use(express.json())
-app.use(cors())
+export const buyerRouter = createBuyerRouter({
+  budget,
+  getDiscoveredAgents: () => discoveredAgents,
+  getAgentScores: () => agentScores,
+  getIsRunning: () => isRunning,
+  getLastDiscovery: () => lastDiscovery,
+  getLastPurchase: () => lastPurchase,
+  getCycleCount: () => cycleCount,
+  triggerDiscover: async () => {
+    discoveredAgents = await discoverAgents(payments)
+    lastDiscovery = new Date().toISOString()
 
-// Status overview
-app.get('/api/buyer/status', (_req: Request, res: Response) => {
-  const status = budget.getStatus()
-  res.json({
-    ...status,
-    isRunning,
-    lastDiscovery,
-    lastPurchase,
-    cycleCount,
-    discoveredAgentCount: discoveredAgents.length,
-    criteria: {
-      minTransactions: 3,
-      minUniqueAgents: 2,
-      transactionsMet: status.totalTransactions >= 3,
-      uniqueAgentsMet: status.uniqueAgents >= 2,
-    },
-  })
+    agentScores = new Map()
+    const purchases = budget.getPurchases()
+    for (const agent of discoveredAgents) {
+      agentScores.set(agent.agentId, scoreAgent(agent, purchases))
+    }
+
+    return {
+      discovered: discoveredAgents.length,
+      agents: discoveredAgents.map(a => ({
+        name: a.name,
+        agentId: a.agentId.slice(0, 16) + '...',
+        planId: a.planId.slice(0, 16) + '...',
+        endpoint: a.endpoint,
+        services: a.serviceCatalog.length,
+        score: agentScores.get(a.agentId)?.overallScore || 0,
+      })),
+    }
+  },
+  triggerBuyCycle: async () => {
+    const beforeCount = budget.getStatus().totalTransactions
+    await runAutonomousCycle()
+    const afterCount = budget.getStatus().totalTransactions
+    return {
+      newPurchases: afterCount - beforeCount,
+      status: budget.getStatus(),
+    }
+  },
 })
 
-// Purchase history
-app.get('/api/buyer/purchases', (_req: Request, res: Response) => {
-  res.json({
-    purchases: budget.getPurchases(),
-    total: budget.getStatus().totalTransactions,
-  })
-})
-
-// Discovered agents with scores
-app.get('/api/buyer/agents', (_req: Request, res: Response) => {
-  const agentsWithScores = discoveredAgents.map(a => ({
-    ...a,
-    score: agentScores.get(a.agentId) || null,
-    purchaseHistory: budget.getPurchasesForAgent(a.agentId),
-  }))
-  res.json({ agents: agentsWithScores, total: agentsWithScores.length })
-})
-
-// Trigger manual discovery
-app.post('/api/buyer/discover', async (_req: Request, res: Response) => {
-  if (isRunning) {
-    res.json({ message: 'Cycle already running' })
-    return
-  }
-  // Run discovery only (no purchasing)
-  discoveredAgents = await discoverAgents(payments)
-  lastDiscovery = new Date().toISOString()
-
-  agentScores = new Map()
-  const purchases = budget.getPurchases()
-  for (const agent of discoveredAgents) {
-    agentScores.set(agent.agentId, scoreAgent(agent, purchases))
-  }
-
-  res.json({
-    discovered: discoveredAgents.length,
-    agents: discoveredAgents.map(a => ({
-      name: a.name,
-      agentId: a.agentId.slice(0, 16) + '...',
-      planId: a.planId.slice(0, 16) + '...',
-      endpoint: a.endpoint,
-      services: a.serviceCatalog.length,
-      score: agentScores.get(a.agentId)?.overallScore || 0,
-    })),
-  })
-})
-
-// Trigger manual purchase cycle
-app.post('/api/buyer/buy', async (_req: Request, res: Response) => {
-  if (isRunning) {
-    res.json({ message: 'Cycle already running' })
-    return
-  }
-
-  const beforeCount = budget.getStatus().totalTransactions
-  await runAutonomousCycle()
-  const afterCount = budget.getStatus().totalTransactions
-
-  res.json({
-    newPurchases: afterCount - beforeCount,
-    status: budget.getStatus(),
-  })
-})
-
-// ============================================================================
-// Start
-// ============================================================================
-
-const PORT = process.env.BUYER_PORT || 3001
-app.listen(PORT, () => {
+export function startBuyerLoop() {
   console.log(`\nPerch Autonomous Buyer Agent`)
   console.log(`============================`)
-  console.log(`Server:   http://localhost:${PORT}`)
-  console.log(`Budget:   ${budget.getStatus().totalBudget} credits`)
-  console.log(`\nEndpoints:`)
-  console.log(`  GET  /api/buyer/status     — budget & progress`)
-  console.log(`  GET  /api/buyer/purchases  — purchase history`)
-  console.log(`  GET  /api/buyer/agents     — discovered agents`)
-  console.log(`  POST /api/buyer/discover   — manual scan`)
-  console.log(`  POST /api/buyer/buy        — manual purchase cycle`)
-  console.log()
+  console.log(`Budget: ${budget.getStatus().totalBudget} credits`)
+  console.log(`Routes: /api/buyer/* (mounted on seller)\n`)
 
   // Run first cycle immediately
   console.log('Starting initial discovery + purchase cycle...\n')
@@ -232,4 +173,4 @@ app.listen(PORT, () => {
 
   // Then repeat every 5 minutes
   setInterval(runAutonomousCycle, 5 * 60 * 1000)
-})
+}

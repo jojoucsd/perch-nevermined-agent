@@ -566,6 +566,24 @@ app.post('/api/nevermined/demo-flow', async (req: Request, res: Response) => {
 // Start server
 // ============================================================================
 
+// ============================================================================
+// Mount buyer routes (if BUYER_API_KEY set)
+// ============================================================================
+
+if (process.env.BUYER_API_KEY) {
+  import('./autonomous-buyer.js').then(({ buyerRouter }) => {
+    app.use('/api/buyer', buyerRouter)
+    console.log(`  Buyer dashboard: /buyer/`)
+    console.log(`  Buyer API:       /api/buyer/*`)
+  }).catch(err => {
+    console.error('[Seller] Failed to mount buyer routes:', err.message)
+  })
+}
+
+// ============================================================================
+// Start server
+// ============================================================================
+
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
   console.log(`\nPerch Tax & Finance Expert Agent`)

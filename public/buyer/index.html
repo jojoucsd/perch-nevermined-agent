@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perch — Buyer Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            perch: { 50: '#f0fdf6', 100: '#dcfce9', 200: '#bbf7d4', 300: '#86efad', 400: '#4ade7f', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+            sand: { 50: '#faf8f5', 100: '#f5f0e8', 200: '#e8dfd0', 300: '#d4c5a9', 400: '#bfa97e', 500: '#a08b5e', 600: '#8a7550', 700: '#6e5d42', 800: '#5c4e39', 900: '#4e4232' },
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { animation: spin 1s linear infinite; }
+  </style>
+</head>
+<body class="bg-sand-50 text-gray-800 min-h-screen">
+
+  <!-- Nav -->
+  <nav class="bg-white border-b border-sand-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-perch-500 to-perch-700 flex items-center justify-center text-white font-bold text-sm shadow-md">P</div>
+        <div>
+          <h1 class="text-lg font-bold text-gray-900 leading-tight">Perch</h1>
+          <p class="text-xs text-gray-400 -mt-0.5">Autonomous Buyer Agent</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="flex items-center gap-2 text-sm text-perch-600 font-medium">
+          <span class="w-2 h-2 rounded-full bg-perch-500 pulse-dot"></span>
+          <span id="cycle-indicator">Idle</span>
+        </span>
+        <a href="/" class="px-4 py-2 text-sm font-medium rounded-lg text-gray-500 hover:text-gray-700 hover:bg-sand-100 transition-all">Seller Dashboard &rarr;</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 space-y-6">
+
+    <!-- Stats Row -->
+    <div class="grid grid-cols-5 gap-4">
+      <div class="bg-white rounded-xl border border-sand-200 p-5 shadow-sm">
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Budget</p>
+        <p class="text-2xl font-bold text-gray-900 mt-1" id="stat-budget">--/50</p>
+        <p class="text-xs text-gray-400 mt-0.5">credits remaining</p>
+      </div>
+      <div class="bg-white rounded-xl border border-sand-200 p-5 shadow-sm">
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Transactions</p>
+        <p class="text-2xl font-bold text-gray-900 mt-1" id="stat-transactions">0</p>
+        <p class="text-xs text-gray-400 mt-0.5">paid purchases</p>
+      </div>
+      <div class="bg-white rounded-xl border border-sand-200 p-5 shadow-sm">
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Unique Agents</p>
+        <p class="text-2xl font-bold text-gray-900 mt-1" id="stat-unique">0</p>
+        <p class="text-xs text-gray-400 mt-0.5">different sellers</p>
+      </div>
+      <div class="bg-white rounded-xl border border-sand-200 p-5 shadow-sm">
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Cycles</p>
+        <p class="text-2xl font-bold text-gray-900 mt-1" id="stat-cycles">0</p>
+        <p class="text-xs text-gray-400 mt-0.5">buy cycles run</p>
+      </div>
+      <div class="bg-white rounded-xl border border-sand-200 p-5 shadow-sm">
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Discovered</p>
+        <p class="text-2xl font-bold text-gray-900 mt-1" id="stat-discovered">0</p>
+        <p class="text-xs text-gray-400 mt-0.5">agents found</p>
+      </div>
+    </div>
+
+    <!-- Budget Bar -->
+    <div class="bg-white rounded-xl border border-sand-200 p-5 shadow-sm">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-sm font-semibold text-gray-700">Budget Utilization</p>
+        <p class="text-sm text-gray-500 mono" id="budget-label">0 / 50 credits spent</p>
+      </div>
+      <div class="w-full bg-sand-100 rounded-full h-4 overflow-hidden">
+        <div id="budget-bar" class="h-4 rounded-full bg-perch-500 transition-all duration-500" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Judging Criteria -->
+    <div class="bg-white rounded-xl border border-sand-200 p-5 shadow-sm">
+      <p class="text-sm font-semibold text-gray-700 mb-3">Judging Criteria</p>
+      <div class="grid grid-cols-5 gap-3" id="criteria-grid">
+        <div class="criteria-item rounded-lg p-3 text-center" data-key="transactionsMet">
+          <div class="criteria-icon text-2xl mb-1"></div>
+          <p class="text-xs font-medium">3+ Transactions</p>
+        </div>
+        <div class="criteria-item rounded-lg p-3 text-center" data-key="uniqueAgentsMet">
+          <div class="criteria-icon text-2xl mb-1"></div>
+          <p class="text-xs font-medium">2+ Unique Agents</p>
+        </div>
+        <div class="criteria-item rounded-lg p-3 text-center" data-key="hasRepeatPurchases">
+          <div class="criteria-icon text-2xl mb-1"></div>
+          <p class="text-xs font-medium">Repeat Purchases</p>
+        </div>
+        <div class="criteria-item rounded-lg p-3 text-center" data-key="budgetEnforced">
+          <div class="criteria-icon text-2xl mb-1"></div>
+          <p class="text-xs font-medium">Budget Enforced</p>
+        </div>
+        <div class="criteria-item rounded-lg p-3 text-center" data-key="roiDecisions">
+          <div class="criteria-icon text-2xl mb-1"></div>
+          <p class="text-xs font-medium">ROI Decisions</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent Marketplace -->
+    <div class="bg-white rounded-xl border border-sand-200 p-5 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <p class="text-sm font-semibold text-gray-700">Agent Marketplace</p>
+          <p class="text-xs text-gray-400" id="marketplace-count">Scanning Nevermined sandbox...</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="triggerDiscover()" id="btn-discover" class="px-4 py-2 text-sm font-medium rounded-lg bg-sand-100 text-gray-700 hover:bg-sand-200 transition-all">
+            Discover Agents
+          </button>
+          <button onclick="triggerBuy()" id="btn-buy" class="px-4 py-2 text-sm font-medium rounded-lg bg-perch-600 text-white hover:bg-perch-700 transition-all">
+            Buy From All
+          </button>
+        </div>
+      </div>
+      <div id="agents-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="text-center py-8 text-gray-400 col-span-3">
+          <p class="text-sm">No agents discovered yet. Click "Discover Agents" to scan.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Purchase History -->
+    <div class="bg-white rounded-xl border border-sand-200 p-5 shadow-sm">
+      <p class="text-sm font-semibold text-gray-700 mb-3">Purchase History</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-sand-200">
+              <th class="text-left py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Time</th>
+              <th class="text-left py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Agent</th>
+              <th class="text-left py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Query</th>
+              <th class="text-right py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Credits</th>
+              <th class="text-center py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+              <th class="text-right py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Satisfaction</th>
+              <th class="text-right py-2 px-3 text-xs font-medium text-gray-400 uppercase tracking-wider">Latency</th>
+            </tr>
+          </thead>
+          <tbody id="purchases-table">
+            <tr><td colspan="7" class="text-center py-8 text-gray-400">No purchases yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+<script>
+const API = '/api/buyer'
+let statusData = null
+
+// ============================================================================
+// Data Loading
+// ============================================================================
+
+async function loadStatus() {
+  try {
+    const res = await fetch(`${API}/status`)
+    statusData = await res.json()
+    renderStatus(statusData)
+    renderCriteria(statusData.criteria)
+  } catch (err) {
+    console.error('Failed to load status:', err)
+  }
+}
+
+async function loadAgents() {
+  try {
+    const res = await fetch(`${API}/agents`)
+    const data = await res.json()
+    renderAgents(data.agents || [])
+  } catch (err) {
+    console.error('Failed to load agents:', err)
+  }
+}
+
+async function loadPurchases() {
+  try {
+    const res = await fetch(`${API}/purchases`)
+    const data = await res.json()
+    renderPurchases(data.purchases || [])
+  } catch (err) {
+    console.error('Failed to load purchases:', err)
+  }
+}
+
+async function triggerDiscover() {
+  const btn = document.getElementById('btn-discover')
+  btn.disabled = true
+  btn.textContent = 'Scanning...'
+  try {
+    await fetch(`${API}/discover`, { method: 'POST' })
+    await Promise.all([loadStatus(), loadAgents()])
+  } catch (err) {
+    console.error('Discovery failed:', err)
+  }
+  btn.disabled = false
+  btn.textContent = 'Discover Agents'
+}
+
+async function triggerBuy() {
+  const btn = document.getElementById('btn-buy')
+  btn.disabled = true
+  btn.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full spinner mr-1"></span> Buying...'
+  try {
+    await fetch(`${API}/buy`, { method: 'POST' })
+    await Promise.all([loadStatus(), loadAgents(), loadPurchases()])
+  } catch (err) {
+    console.error('Buy cycle failed:', err)
+  }
+  btn.disabled = false
+  btn.textContent = 'Buy From All'
+}
+
+async function buyFromAgent(agentId) {
+  // Trigger a full buy cycle (the loop will prioritize the agent)
+  const btn = document.querySelector(`[data-buy="${agentId}"]`)
+  if (btn) {
+    btn.disabled = true
+    btn.innerHTML = '<span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full spinner mr-1"></span>'
+  }
+  try {
+    await fetch(`${API}/buy`, { method: 'POST' })
+    await Promise.all([loadStatus(), loadAgents(), loadPurchases()])
+  } catch (err) {
+    console.error('Buy failed:', err)
+  }
+  if (btn) {
+    btn.disabled = false
+    btn.textContent = 'Buy'
+  }
+}
+
+// ============================================================================
+// Rendering
+// ============================================================================
+
+function renderStatus(s) {
+  document.getElementById('stat-budget').textContent = `${s.remaining}/${s.totalBudget}`
+  document.getElementById('stat-transactions').textContent = s.totalTransactions
+  document.getElementById('stat-unique').textContent = s.uniqueAgents
+  document.getElementById('stat-cycles').textContent = s.cycleCount
+  document.getElementById('stat-discovered').textContent = s.discoveredAgentCount
+
+  // Budget bar
+  const pct = Math.round((s.spent / s.totalBudget) * 100)
+  const bar = document.getElementById('budget-bar')
+  bar.style.width = `${pct}%`
+  bar.className = `h-4 rounded-full transition-all duration-500 ${
+    s.remaining > 20 ? 'bg-perch-500' : s.remaining > 10 ? 'bg-amber-500' : 'bg-red-500'
+  }`
+  document.getElementById('budget-label').textContent = `${s.spent} / ${s.totalBudget} credits spent`
+
+  // Cycle indicator
+  document.getElementById('cycle-indicator').textContent = s.isRunning ? 'Running...' : `Cycle ${s.cycleCount}`
+}
+
+function renderCriteria(c) {
+  if (!c) return
+  const items = document.querySelectorAll('.criteria-item')
+  items.forEach(item => {
+    const key = item.dataset.key
+    const met = c[key]
+    const icon = item.querySelector('.criteria-icon')
+    if (met) {
+      item.className = 'criteria-item rounded-lg p-3 text-center bg-perch-50 border border-perch-200'
+      icon.innerHTML = '<svg class="w-6 h-6 mx-auto text-perch-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+    } else {
+      item.className = 'criteria-item rounded-lg p-3 text-center bg-sand-50 border border-sand-200'
+      icon.innerHTML = '<svg class="w-6 h-6 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>'
+    }
+  })
+}
+
+function renderAgents(agents) {
+  const grid = document.getElementById('agents-grid')
+  document.getElementById('marketplace-count').textContent = `${agents.length} agent${agents.length !== 1 ? 's' : ''} discovered on Nevermined`
+
+  if (agents.length === 0) {
+    grid.innerHTML = '<div class="text-center py-8 text-gray-400 col-span-3"><p class="text-sm">No agents discovered yet. Click "Discover Agents" to scan.</p></div>'
+    return
+  }
+
+  grid.innerHTML = agents.map(a => {
+    const score = a.score?.overallScore || 0
+    const scoreColor = score >= 70 ? 'bg-perch-500' : score >= 40 ? 'bg-amber-500' : 'bg-red-500'
+    const purchaseCount = (a.purchaseHistory || []).length
+    const tags = (a.tags || []).slice(0, 4)
+
+    return `
+      <div class="border border-sand-200 rounded-lg p-4 hover:shadow-md transition-shadow relative">
+        ${purchaseCount > 0 ? `<span class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-perch-600 text-white text-xs flex items-center justify-center font-bold">${purchaseCount}</span>` : ''}
+        <div class="flex items-start justify-between mb-2">
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-gray-900 text-sm truncate">${esc(a.name)}</h3>
+            <p class="mono text-xs text-gray-400 truncate">${a.agentId.slice(0, 16)}...</p>
+          </div>
+          <div class="flex items-center gap-1.5 ml-2">
+            <span class="w-3 h-3 rounded-full ${scoreColor}"></span>
+            <span class="text-xs font-bold text-gray-600">${score}</span>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 mb-3 line-clamp-2">${esc(a.description || 'No description')}</p>
+        ${tags.length ? `<div class="flex flex-wrap gap-1 mb-3">${tags.map(t => `<span class="px-2 py-0.5 text-xs rounded-full bg-perch-50 text-perch-700 border border-perch-200">${esc(t)}</span>`).join('')}</div>` : ''}
+        ${a.serviceCatalog?.length ? `
+          <div class="mb-3">
+            <p class="text-xs font-medium text-gray-400 mb-1">Services (${a.serviceCatalog.length})</p>
+            <div class="space-y-0.5">
+              ${a.serviceCatalog.slice(0, 3).map(s => `
+                <div class="flex justify-between text-xs">
+                  <span class="text-gray-600 truncate">${esc(s.query_type)}</span>
+                  <span class="mono text-gray-400 ml-2">${s.credits}cr</span>
+                </div>
+              `).join('')}
+              ${a.serviceCatalog.length > 3 ? `<p class="text-xs text-gray-400">+${a.serviceCatalog.length - 3} more</p>` : ''}
+            </div>
+          </div>
+        ` : ''}
+        <div class="flex items-center justify-between">
+          <div class="text-xs text-gray-400">
+            ${a.score ? `Rel:${a.score.relevanceScore} Cost:${a.score.costScore} Qual:${a.score.qualityScore}` : ''}
+          </div>
+          <button data-buy="${a.agentId}" onclick="buyFromAgent('${a.agentId}')" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-perch-600 text-white hover:bg-perch-700 transition-all">
+            Buy
+          </button>
+        </div>
+      </div>
+    `
+  }).join('')
+}
+
+function renderPurchases(purchases) {
+  const tbody = document.getElementById('purchases-table')
+
+  if (purchases.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">No purchases yet</td></tr>'
+    return
+  }
+
+  tbody.innerHTML = purchases.map(p => {
+    const time = new Date(p.timestamp).toLocaleTimeString()
+    const statusClass = p.success ? 'bg-perch-100 text-perch-700' : 'bg-red-100 text-red-700'
+    const satColor = p.satisfactionScore >= 70 ? 'text-perch-600' : p.satisfactionScore >= 40 ? 'text-amber-600' : 'text-red-600'
+
+    return `
+      <tr class="border-b border-sand-100 hover:bg-sand-50">
+        <td class="py-2.5 px-3 mono text-xs text-gray-500">${time}</td>
+        <td class="py-2.5 px-3">
+          <span class="text-sm font-medium text-gray-800">${esc(p.agentName)}</span>
+          <br><span class="mono text-xs text-gray-400">${p.agentId.slice(0, 12)}...</span>
+        </td>
+        <td class="py-2.5 px-3">
+          <span class="px-2 py-0.5 text-xs rounded-full bg-sand-100 text-gray-600">${esc(p.queryType)}</span>
+        </td>
+        <td class="py-2.5 px-3 text-right mono text-sm font-medium">${p.creditsCost}</td>
+        <td class="py-2.5 px-3 text-center">
+          <span class="px-2 py-0.5 text-xs rounded-full font-medium ${statusClass}">${p.success ? 'OK' : 'Fail'}</span>
+        </td>
+        <td class="py-2.5 px-3 text-right font-medium ${satColor}">${p.satisfactionScore}</td>
+        <td class="py-2.5 px-3 text-right mono text-xs text-gray-500">${p.responseTimeMs}ms</td>
+      </tr>
+    `
+  }).join('')
+}
+
+function esc(s) {
+  const d = document.createElement('div')
+  d.textContent = s || ''
+  return d.innerHTML
+}
+
+// ============================================================================
+// Init
+// ============================================================================
+
+loadStatus()
+loadAgents()
+loadPurchases()
+
+// Auto-refresh every 10 seconds
+setInterval(() => {
+  loadStatus()
+  loadPurchases()
+}, 10000)
+
+// Refresh agents every 30 seconds
+setInterval(loadAgents, 30000)
+</script>
+
+</body>
+</html>
