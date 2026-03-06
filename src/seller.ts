@@ -7,6 +7,7 @@ import { handleAnalysisRequest, getCreditsForQuery } from './agent/handler.js'
 import { SERVICE_CATALOG } from './types.js'
 import type { AnalysisRequest, QueryType } from './types.js'
 import { stats } from './data/store.js'
+import { loadSubmittedAgents, createConnectRouter, setPurchaseTrigger } from './connect/routes.js'
 
 const app = express()
 app.use(express.json())
@@ -654,40 +655,27 @@ app.get('/api/str/dashboard', (_req: Request, res: Response) => {
 // ============================================================================
 
 // ============================================================================
+// Mount connect routes (always on)
+// ============================================================================
+
+loadSubmittedAgents()
+app.use('/api/agents', createConnectRouter())
+
+// ============================================================================
 // Mount buyer routes (if BUYER_API_KEY set)
 // ============================================================================
 
 if (process.env.BUYER_API_KEY) {
-  import('./autonomous-buyer.js').then(({ buyerRouter }) => {
+  import('./autonomous-buyer.js').then(({ buyerRouter, purchaseFromSubmitted }) => {
     app.use('/api/buyer', buyerRouter)
+    setPurchaseTrigger(purchaseFromSubmitted)
     console.log(`  Buyer dashboard: /buyer/`)
     console.log(`  Buyer API:       /api/buyer/*`)
+    console.log(`  Auto-purchase:   enabled`)
   }).catch(err => {
     console.error('[Seller] Failed to mount buyer routes:', err.message)
   })
 }
-
-// ============================================================================
-// Mount connect routes (agent submission & auto-buy)
-// ============================================================================
-
-import('./connect/routes.js').then(async ({ loadSubmittedAgents, createConnectRouter, setPurchaseTrigger }) => {
-  await loadSubmittedAgents()
-  const connectRouter = createConnectRouter()
-  app.use('/api/agents', connectRouter)
-  console.log(`  Connect page:    /connect/`)
-  console.log(`  Submit API:      /api/agents/submit`)
-
-  // Wire auto-purchase if buyer is available
-  if (process.env.BUYER_API_KEY) {
-    import('./autonomous-buyer.js').then(({ purchaseFromSubmitted }) => {
-      setPurchaseTrigger(purchaseFromSubmitted)
-      console.log(`  Auto-purchase:   enabled`)
-    }).catch(() => {})
-  }
-}).catch(err => {
-  console.error('[Seller] Failed to mount connect routes:', err.message)
-})
 
 // ============================================================================
 // Start server
