@@ -575,6 +575,59 @@ app.post('/api/nevermined/demo-flow', async (req: Request, res: Response) => {
 })
 
 // ============================================================================
+// STR Dashboard API
+// ============================================================================
+
+app.get('/api/str/dashboard', (_req: Request, res: Response) => {
+  const properties = [
+    { id:'prop-01', name:'SoCo Modern Loft', address:'1847 S Congress Ave, Austin, TX', nightlyRate:225, occupancy:78, ytdRevenue:42500, ytdExpenses:18200, noi:24300 },
+    { id:'prop-02', name:'Domain Studio', address:'3200 Palm Way #412, Austin, TX', nightlyRate:155, occupancy:82, ytdRevenue:31200, ytdExpenses:12800, noi:18400 },
+    { id:'prop-03', name:'Zilker Cottage', address:'2105 Kinney Ave, Austin, TX', nightlyRate:285, occupancy:71, ytdRevenue:38900, ytdExpenses:21400, noi:17500 },
+    { id:'prop-04', name:'East Side Bungalow', address:'4512 E 12th St, Austin, TX', nightlyRate:175, occupancy:75, ytdRevenue:28600, ytdExpenses:14700, noi:13900 },
+    { id:'prop-05', name:'Mueller Park Flat', address:'1900 Aldrich St #205, Austin, TX', nightlyRate:140, occupancy:85, ytdRevenue:24800, ytdExpenses:11200, noi:13600 },
+  ]
+
+  const totalRev = properties.reduce((s,p) => s + p.ytdRevenue, 0)
+  const totalExp = properties.reduce((s,p) => s + p.ytdExpenses, 0)
+  const totalNOI = totalRev - totalExp
+
+  const recentTxns = transactions.slice(0, 20).map(tx => ({
+    id: tx.id,
+    timestamp: tx.timestamp,
+    type: 'tax',
+    agent: 'Tallyfor AI',
+    message: `${tx.queryType.replace(/_/g, ' ')} analysis completed (${tx.credits} credits)`,
+    credits: tx.credits,
+    source: 'real',
+  }))
+
+  const creditsEarned = transactions
+    .filter(t => t.status === 'settled')
+    .reduce((s, t) => s + t.credits, 0)
+
+  res.json({
+    portfolio: {
+      properties,
+      totals: {
+        totalRevenue: totalRev,
+        totalExpenses: totalExp,
+        totalNOI,
+        avgOccupancy: Math.round(properties.reduce((s,p) => s + p.occupancy, 0) / properties.length),
+        propertyCount: properties.length,
+      },
+    },
+    sellerTransactions: recentTxns,
+    financials: {
+      monthlyRevenue: Math.round(totalRev / 3),
+      monthlyExpenses: Math.round(totalExp / 3),
+      monthlyNOI: Math.round(totalNOI / 3),
+      taxSavingsYTD: Math.round(totalNOI * 0.12),
+      agentCreditsUsed: creditsEarned,
+    },
+  })
+})
+
+// ============================================================================
 // Start server
 // ============================================================================
 

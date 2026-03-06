@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perch STR — Property Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            perch: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' },
+            sand: { 50: '#FCFCFC', 100: '#F5F6F7', 200: '#E6E9EC', 300: '#D3D7DC', 400: '#B1B8C0', 500: '#858D97', 600: '#6A7582', 700: '#485461', 800: '#394450', 900: '#181F28' },
+            coral: { 400: '#F57E77', 500: '#E0645C' },
+            tally: { 100: '#EEF5FD', 200: '#DBE8F6', 400: '#9CC7F8', 500: '#5FA4F3', 600: '#2C87EF', 800: '#1763BA' },
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'IBM Plex Sans', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    .slide-in { animation: slideIn 0.3s ease-out; }
+    @keyframes agentPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(20,184,166,0); }
+      50% { box-shadow: 0 0 0 4px rgba(20,184,166,0.15); }
+    }
+    .agent-active { animation: agentPulse 3s ease-in-out infinite; }
+  </style>
+</head>
+<body class="bg-sand-50 text-gray-800 min-h-screen">
+
+  <!-- Nav -->
+  <nav class="bg-sand-900 text-white sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-coral-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight">Perch STR</h1>
+          <p class="text-xs text-sand-400 -mt-0.5">Property Management</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="flex items-center gap-2 text-xs text-perch-400 font-medium bg-sand-800 px-3 py-1.5 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-perch-500 pulse-dot"></span>
+          Powered by AI Agents
+        </span>
+        <div class="flex items-center gap-1 text-sm">
+          <a href="/" class="px-3 py-1.5 rounded-lg text-sand-400 hover:text-white hover:bg-sand-800 transition-all">Tallyfor AI</a>
+          <a href="/buyer/" class="px-3 py-1.5 rounded-lg text-sand-400 hover:text-white hover:bg-sand-800 transition-all">Buyer</a>
+          <a href="/connect/" class="px-3 py-1.5 rounded-lg text-sand-400 hover:text-white hover:bg-sand-800 transition-all">Connect</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Stats Bar -->
+  <section class="bg-white border-b border-sand-200">
+    <div class="max-w-7xl mx-auto px-6 py-6">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="bg-sand-50 rounded-xl p-4 border border-sand-200">
+          <div class="text-xs text-sand-500 font-medium uppercase tracking-wide">Monthly Revenue</div>
+          <div id="stat-revenue" class="text-2xl font-bold text-sand-900 mt-1">$0</div>
+          <div class="text-xs text-green-600 mt-1">+12% vs last month</div>
+        </div>
+        <div class="bg-sand-50 rounded-xl p-4 border border-sand-200">
+          <div class="text-xs text-sand-500 font-medium uppercase tracking-wide">Monthly NOI</div>
+          <div id="stat-noi" class="text-2xl font-bold text-sand-900 mt-1">$0</div>
+          <div class="text-xs text-green-600 mt-1">+8% vs last month</div>
+        </div>
+        <div class="bg-sand-50 rounded-xl p-4 border border-sand-200">
+          <div class="text-xs text-sand-500 font-medium uppercase tracking-wide">Avg Occupancy</div>
+          <div id="stat-occupancy" class="text-2xl font-bold text-sand-900 mt-1">0%</div>
+          <div class="text-xs text-perch-600 mt-1">5 properties</div>
+        </div>
+        <div class="bg-perch-50 rounded-xl p-4 border border-perch-200">
+          <div class="text-xs text-perch-600 font-medium uppercase tracking-wide">Tax Savings (AI)</div>
+          <div id="stat-tax" class="text-2xl font-bold text-perch-800 mt-1">$0</div>
+          <div class="text-xs text-perch-600 mt-1">via Tallyfor AI</div>
+        </div>
+        <div class="bg-tally-100 rounded-xl p-4 border border-tally-200">
+          <div class="text-xs text-tally-800 font-medium uppercase tracking-wide">Active Agents</div>
+          <div id="stat-agents" class="text-2xl font-bold text-tally-800 mt-1">0</div>
+          <div class="text-xs text-tally-600 mt-1">connected & buying</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+
+    <!-- Property Portfolio -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-sand-900">Property Portfolio</h2>
+        <span class="text-xs bg-sand-200 text-sand-600 px-2.5 py-1 rounded-full font-medium">5 Properties</span>
+      </div>
+      <div id="properties-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      </div>
+    </section>
+
+    <!-- Two columns: agents + feed | financials -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left 2/3 -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Agent Integrations -->
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-xl font-bold text-sand-900">AI Agent Integrations</h2>
+              <p class="text-xs text-sand-500 mt-0.5">Powered by Nevermined x402 Protocol</p>
+            </div>
+            <a href="/connect/" class="text-sm text-perch-600 hover:text-perch-800 font-medium transition-colors">+ Add Agent</a>
+          </div>
+          <div id="agents-panel" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          </div>
+        </section>
+
+        <!-- Live Activity Feed -->
+        <section>
+          <div class="flex items-center gap-2 mb-4">
+            <h2 class="text-xl font-bold text-sand-900">Live Activity</h2>
+            <span class="w-2 h-2 rounded-full bg-green-500 pulse-dot"></span>
+          </div>
+          <div id="activity-feed" class="bg-sand-900 rounded-xl p-4 max-h-96 overflow-y-auto space-y-1 mono text-sm">
+            <div class="text-sand-500 text-xs">Waiting for agent activity...</div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right 1/3 -->
+      <div class="space-y-6">
+
+        <!-- Financial Breakdown -->
+        <div class="bg-white rounded-xl border border-sand-200 p-5">
+          <h3 class="font-bold text-sand-900 mb-4">Financial Summary</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-sand-500">YTD Revenue</span>
+              <span id="fin-revenue" class="font-semibold text-sand-900">$0</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-sand-500">YTD Expenses</span>
+              <span id="fin-expenses" class="font-semibold text-coral-500">$0</span>
+            </div>
+            <div class="border-t border-sand-200 pt-3 flex justify-between items-center">
+              <span class="text-sm font-medium text-sand-700">Net Operating Income</span>
+              <span id="fin-noi" class="font-bold text-perch-700">$0</span>
+            </div>
+            <div class="bg-perch-50 rounded-lg p-3 mt-2">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-perch-700 font-medium">Tax Savings (AI)</span>
+                <span id="fin-tax" class="font-bold text-perch-800">$0</span>
+              </div>
+              <p class="text-xs text-perch-600 mt-1">Identified by Tallyfor AI agent</p>
+            </div>
+            <div class="bg-tally-100 rounded-lg p-3">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-tally-800 font-medium">Agent Credits Used</span>
+                <span id="fin-credits" class="font-bold text-tally-800">0</span>
+              </div>
+              <p class="text-xs text-tally-600 mt-1">Across all connected agents</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agent Marketplace Mini -->
+        <div class="bg-white rounded-xl border border-sand-200 p-5">
+          <h3 class="font-bold text-sand-900 mb-3">Agent Marketplace</h3>
+          <div class="space-y-2 mb-4">
+            <div class="flex justify-between text-sm">
+              <span class="text-sand-500">Marketplace agents</span>
+              <span id="mkt-discovered" class="font-medium text-sand-900">0</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-sand-500">Community agents</span>
+              <span id="mkt-community" class="font-medium text-sand-900">0</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-sand-500">Total purchases</span>
+              <span id="mkt-purchases" class="font-medium text-sand-900">0</span>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <a href="/buyer/" class="block text-center px-4 py-2 bg-tally-600 text-white text-sm font-medium rounded-lg hover:bg-tally-800 transition-colors">Browse Marketplace</a>
+            <a href="/connect/" class="block text-center px-4 py-2 bg-perch-600 text-white text-sm font-medium rounded-lg hover:bg-perch-800 transition-colors">Connect Your Agent</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-sand-900 text-sand-400 py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold text-white">Perch STR</span>
+        <span class="text-sand-600">&mdash;</span>
+        <span>Powered by AI Agents via Nevermined x402</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/" class="hover:text-white transition-colors">Tallyfor AI</a>
+        <a href="/buyer/" class="hover:text-white transition-colors">Buyer</a>
+        <a href="/connect/" class="hover:text-white transition-colors">Connect</a>
+        <a href="/brand/" class="hover:text-white transition-colors">Brand</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ========================================================================
+    // State
+    // ========================================================================
+    let properties = []
+    let financials = {}
+    let sellerTxns = []
+    let buyerPurchases = []
+    let buyerAgents = []
+    let communityAgents = []
+    let activityItems = []
+
+    // Simulated property overlays
+    const PROP_SIM = {
+      'prop-01': { status: 'occupied', guest: 'Sarah K.', nightsLeft: 2, next: 'Michael R., Mar 9' },
+      'prop-02': { status: 'vacant', guest: null, next: 'Jennifer L., Mar 10' },
+      'prop-03': { status: 'cleaning', guest: null, next: 'Emma W., Mar 7' },
+      'prop-04': { status: 'occupied', guest: 'Robert & Lisa T.', nightsLeft: 6, next: null },
+      'prop-05': { status: 'maintenance', guest: null, next: 'Chris D., Mar 8' },
+    }
+
+    const STATUS_COLORS = {
+      occupied:    { bg: 'bg-green-100', text: 'text-green-700', border: 'border-l-green-500' },
+      vacant:      { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-l-amber-500' },
+      cleaning:    { bg: 'bg-blue-100',  text: 'text-blue-700',  border: 'border-l-blue-500' },
+      maintenance: { bg: 'bg-red-100',   text: 'text-red-700',   border: 'border-l-red-500' },
+    }
+
+    // Agent slot definitions
+    const AGENT_SLOTS = [
+      { role: 'tax',      name: 'Tallyfor AI',     icon: '&#128200;', color: 'perch',  keywords: ['tax','finance','tallyfor','accounting'] },
+      { role: 'cleaning', name: 'Cleaning Agent',   icon: '&#10024;',  color: 'tally',  keywords: ['clean','turnover','housekeep','maid'] },
+      { role: 'payment',  name: 'Payment Agent',    icon: '&#128179;', color: 'coral',  keywords: ['payment','collect','payout','invoice','billing'] },
+      { role: 'tours',    name: 'Tours Agent',      icon: '&#127758;', color: 'amber',  keywords: ['tour','experience','activity','concierge','local'] },
+    ]
+
+    // Simulated event templates
+    const SIM_EVENTS = [
+      { type: 'tax', agent: 'Tallyfor AI', msgs: [
+        'Classified $1,350 cleaning expense as deductible for {prop}',
+        'QBI analysis updated — $4,200 potential savings this quarter',
+        'Material participation: {prop} at 623/750 hours',
+        'Flagged $890 duplicate expense entry for {prop}',
+        '1031 exchange analysis: {prop} qualifies for deferral',
+        'Depreciation schedule updated for {prop} — $12,400 annual',
+      ]},
+      { type: 'cleaning', agent: 'CleanTurn Pro', msgs: [
+        'Turnover completed for {prop} — ready for next guest',
+        'Deep clean scheduled for {prop} on Mar 8, 2pm',
+        'Restocking supplies for {prop} — 12 items',
+        'Quality inspection: {prop} scored 98/100',
+      ]},
+      { type: 'payment', agent: 'PayCollect AI', msgs: [
+        'Processed $1,247 guest payment for {prop}',
+        'Security deposit of $500 released for {prop}',
+        'Airbnb payout received: $892 for {prop}',
+        'VRBO payout pending: $1,105 for {prop}',
+      ]},
+      { type: 'tours', agent: 'LocalXP Agent', msgs: [
+        'Guest booked Sunset Kayak Tour — $45 commission',
+        '3 experiences recommended to {prop} guest',
+        'BBQ Pit Tour: 4.8 stars review from {prop} guest',
+        'SXSW package available: Austin Music Crawl $65',
+      ]},
+    ]
+
+    const PROP_NAMES = ['SoCo Modern Loft','Domain Studio','Zilker Cottage','East Side Bungalow','Mueller Park Flat']
+
+    const TYPE_COLORS = {
+      tax:     'text-perch-400',
+      cleaning:'text-tally-400',
+      payment: 'text-coral-400',
+      tours:   'text-amber-400',
+      booking: 'text-purple-400',
+      system:  'text-sand-500',
+    }
+
+    // ========================================================================
+    // Data loading
+    // ========================================================================
+
+    async function loadDashboard() {
+      try {
+        const r = await fetch('/api/str/dashboard')
+        if (!r.ok) throw new Error('not ok')
+        const data = await r.json()
+        properties = data.portfolio?.properties || []
+        financials = data.financials || {}
+        sellerTxns = data.sellerTransactions || []
+        renderProperties()
+        renderStats()
+        renderFinancials()
+      } catch {
+        // Use hardcoded fallback
+        properties = [
+          { id:'prop-01', name:'SoCo Modern Loft', address:'1847 S Congress Ave, Austin, TX', nightlyRate:225, occupancy:78, ytdRevenue:42500, ytdExpenses:18200, noi:24300 },
+          { id:'prop-02', name:'Domain Studio', address:'3200 Palm Way #412, Austin, TX', nightlyRate:155, occupancy:82, ytdRevenue:31200, ytdExpenses:12800, noi:18400 },
+          { id:'prop-03', name:'Zilker Cottage', address:'2105 Kinney Ave, Austin, TX', nightlyRate:285, occupancy:71, ytdRevenue:38900, ytdExpenses:21400, noi:17500 },
+          { id:'prop-04', name:'East Side Bungalow', address:'4512 E 12th St, Austin, TX', nightlyRate:175, occupancy:75, ytdRevenue:28600, ytdExpenses:14700, noi:13900 },
+          { id:'prop-05', name:'Mueller Park Flat', address:'1900 Aldrich St #205, Austin, TX', nightlyRate:140, occupancy:85, ytdRevenue:24800, ytdExpenses:11200, noi:13600 },
+        ]
+        financials = { monthlyRevenue: 55333, monthlyExpenses: 26100, monthlyNOI: 29233, taxSavingsYTD: 10536, agentCreditsUsed: 0 }
+        renderProperties()
+        renderStats()
+        renderFinancials()
+      }
+    }
+
+    async function loadBuyerData() {
+      try {
+        const [pRes, aRes] = await Promise.all([
+          fetch('/api/buyer/purchases').catch(() => null),
+          fetch('/api/buyer/agents').catch(() => null),
+        ])
+        if (pRes?.ok) buyerPurchases = (await pRes.json()).purchases || []
+        if (aRes?.ok) buyerAgents = (await aRes.json()).agents || []
+      } catch {}
+      renderAgents()
+      renderMarketplace()
+    }
+
+    async function loadCommunityAgents() {
+      try {
+        const r = await fetch('/api/agents/submitted')
+        if (r.ok) {
+          const data = await r.json()
+          communityAgents = data.agents || []
+        }
+      } catch {}
+      renderAgents()
+      renderMarketplace()
+    }
+
+    async function loadTransactions() {
+      try {
+        const r = await fetch('/api/nevermined/transactions')
+        if (r.ok) {
+          const data = await r.json()
+          sellerTxns = (data.transactions || []).slice(0, 10)
+        }
+      } catch {}
+    }
+
+    // ========================================================================
+    // Rendering
+    // ========================================================================
+
+    function fmt(n) { return '$' + (n||0).toLocaleString() }
+
+    function renderStats() {
+      const totalRev = properties.reduce((s,p) => s + p.ytdRevenue, 0)
+      const totalExp = properties.reduce((s,p) => s + p.ytdExpenses, 0)
+      const totalNOI = properties.reduce((s,p) => s + p.noi, 0)
+      const avgOcc = Math.round(properties.reduce((s,p) => s + p.occupancy, 0) / (properties.length||1))
+
+      document.getElementById('stat-revenue').textContent = fmt(financials.monthlyRevenue || Math.round(totalRev/3))
+      document.getElementById('stat-noi').textContent = fmt(financials.monthlyNOI || Math.round(totalNOI/3))
+      document.getElementById('stat-occupancy').textContent = avgOcc + '%'
+      document.getElementById('stat-tax').textContent = fmt(financials.taxSavingsYTD || Math.round(totalNOI * 0.12))
+
+      const connectedCount = getConnectedAgentCount()
+      document.getElementById('stat-agents').textContent = connectedCount
+    }
+
+    function renderProperties() {
+      const grid = document.getElementById('properties-grid')
+      grid.innerHTML = properties.map(p => {
+        const sim = PROP_SIM[p.id] || { status: 'vacant', guest: null, next: 'TBD' }
+        const sc = STATUS_COLORS[sim.status]
+        return `
+          <div class="bg-white rounded-xl border border-sand-200 border-l-4 ${sc.border} p-4 hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between mb-2">
+              <h3 class="font-semibold text-sand-900 text-sm leading-tight">${p.name}</h3>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium ${sc.bg} ${sc.text} capitalize">${sim.status}</span>
+            </div>
+            <p class="text-xs text-sand-400 mb-3">${p.address}</p>
+            <div class="flex items-center justify-between text-xs mb-2">
+              <span class="text-sand-500">${fmt(p.nightlyRate)}/night</span>
+              <span class="font-medium text-sand-700">${p.occupancy}% occ.</span>
+            </div>
+            <div class="w-full bg-sand-200 rounded-full h-1.5 mb-3">
+              <div class="h-1.5 rounded-full ${sim.status === 'occupied' ? 'bg-green-500' : 'bg-sand-400'}" style="width:${p.occupancy}%"></div>
+            </div>
+            <div class="text-xs text-sand-500 space-y-1">
+              <div class="flex justify-between"><span>YTD Revenue</span><span class="font-medium text-sand-700">${fmt(p.ytdRevenue)}</span></div>
+              ${sim.guest ? `<div class="text-green-600">&#128100; ${sim.guest}${sim.nightsLeft ? ` (${sim.nightsLeft} nights left)` : ''}</div>` : ''}
+              ${sim.next ? `<div class="text-sand-400">Next: ${sim.next}</div>` : ''}
+            </div>
+          </div>`
+      }).join('')
+    }
+
+    function matchAgentToRole(agent) {
+      const text = `${agent.name||''} ${agent.description||''} ${(agent.tags||[]).join(' ')} ${(agent.services||[]).map(s=>s.path||s.description||'').join(' ')}`.toLowerCase()
+      for (const slot of AGENT_SLOTS) {
+        if (slot.keywords.some(k => text.includes(k))) return slot.role
+      }
+      return 'other'
+    }
+
+    function getConnectedAgentCount() {
+      let count = 1 // Tallyfor AI always connected
+      const allExternal = [...buyerAgents, ...communityAgents.filter(a => a.status === 'purchased')]
+      const seen = new Set()
+      for (const a of allExternal) {
+        const id = a.agentId || a.id
+        if (!seen.has(id)) {
+          seen.add(id)
+          count++
+        }
+      }
+      return count
+    }
+
+    function renderAgents() {
+      const panel = document.getElementById('agents-panel')
+      const allExternal = [...buyerAgents, ...communityAgents.filter(a => a.status === 'purchased')]
+
+      // Match real agents to slots
+      const matched = {}
+      for (const a of allExternal) {
+        const role = matchAgentToRole(a)
+        if (role !== 'other' && !matched[role]) matched[role] = a
+      }
+
+      // Unmatched agents
+      const matchedIds = new Set(Object.values(matched).map(a => a.agentId || a.id))
+      const extras = allExternal.filter(a => !matchedIds.has(a.agentId || a.id))
+
+      const cards = AGENT_SLOTS.map(slot => {
+        const real = matched[slot.role]
+        const isTax = slot.role === 'tax'
+        const isConnected = isTax || !!real
+        const displayName = real && !isTax ? real.name : slot.name
+        const txnCount = isTax ? sellerTxns.length : (real ? buyerPurchases.filter(p => p.agentId === (real.agentId||real.id)).length : 0)
+        const lastAction = isTax && sellerTxns.length > 0
+          ? sellerTxns[0].message || 'Tax analysis completed'
+          : real ? `Connected via marketplace` : 'Searching marketplace...'
+        const source = isTax ? 'Internal' : (real ? (communityAgents.find(c => c.agentId === (real.agentId||real.id)) ? 'Community' : 'Marketplace') : null)
+
+        const colorMap = { perch: 'perch', tally: 'tally', coral: 'coral', amber: 'amber' }
+        const c = colorMap[slot.color] || 'sand'
+
+        return `
+          <div class="bg-white rounded-xl border border-sand-200 p-4 ${isConnected ? 'agent-active' : 'opacity-70'}">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">${slot.icon}</span>
+                <div>
+                  <div class="font-semibold text-sm text-sand-900">${displayName}</div>
+                  <div class="text-xs text-sand-400 capitalize">${slot.role}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                ${source ? `<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-sand-100 text-sand-600">${source}</span>` : ''}
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium ${isConnected ? 'bg-green-100 text-green-700' : 'bg-sand-100 text-sand-500'}">
+                  ${isConnected ? 'Connected' : 'Pending'}
+                </span>
+              </div>
+            </div>
+            <p class="text-xs text-sand-500 italic mb-2">${lastAction}</p>
+            ${txnCount > 0 ? `<div class="text-xs text-sand-400">${txnCount} transaction${txnCount !== 1 ? 's' : ''}</div>` : ''}
+          </div>`
+      })
+
+      // Extra agents
+      for (const a of extras.slice(0, 4)) {
+        cards.push(`
+          <div class="bg-white rounded-xl border border-sand-200 p-4">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">&#129302;</span>
+                <div>
+                  <div class="font-semibold text-sm text-sand-900">${a.name}</div>
+                  <div class="text-xs text-sand-400">${a.description || 'Agent'}</div>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Connected</span>
+            </div>
+            <p class="text-xs text-sand-500 italic">Discovered on marketplace</p>
+          </div>`)
+      }
+
+      panel.innerHTML = cards.join('')
+      document.getElementById('stat-agents').textContent = getConnectedAgentCount()
+    }
+
+    function renderFinancials() {
+      const totalRev = properties.reduce((s,p) => s + p.ytdRevenue, 0)
+      const totalExp = properties.reduce((s,p) => s + p.ytdExpenses, 0)
+      const totalNOI = totalRev - totalExp
+      const taxSavings = financials.taxSavingsYTD || Math.round(totalNOI * 0.12)
+      const credits = financials.agentCreditsUsed || sellerTxns.reduce((s,t) => s + (t.credits||1), 0)
+
+      document.getElementById('fin-revenue').textContent = fmt(totalRev)
+      document.getElementById('fin-expenses').textContent = fmt(totalExp)
+      document.getElementById('fin-noi').textContent = fmt(totalNOI)
+      document.getElementById('fin-tax').textContent = fmt(taxSavings)
+      document.getElementById('fin-credits').textContent = credits
+    }
+
+    function renderMarketplace() {
+      document.getElementById('mkt-discovered').textContent = buyerAgents.length
+      document.getElementById('mkt-community').textContent = communityAgents.length
+      document.getElementById('mkt-purchases').textContent = buyerPurchases.length
+    }
+
+    // ========================================================================
+    // Activity Feed
+    // ========================================================================
+
+    function addActivity(item) {
+      activityItems.unshift(item)
+      if (activityItems.length > 50) activityItems.pop()
+      renderFeed()
+    }
+
+    function renderFeed() {
+      const feed = document.getElementById('activity-feed')
+      if (activityItems.length === 0) return
+      feed.innerHTML = activityItems.map((item, i) => {
+        const time = new Date(item.timestamp).toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12: false })
+        const color = TYPE_COLORS[item.type] || 'text-sand-500'
+        return `<div class="${i === 0 ? 'slide-in' : ''} flex gap-2 py-1 border-b border-sand-800 last:border-0">
+          <span class="text-sand-600 shrink-0">${time}</span>
+          <span class="${color} shrink-0">[${item.agent}]</span>
+          <span class="text-sand-300">${item.message}</span>
+          ${item.source === 'real' ? '<span class="text-perch-500 text-xs ml-auto shrink-0">LIVE</span>' : ''}
+        </div>`
+      }).join('')
+    }
+
+    function injectRealTransactions() {
+      for (const tx of sellerTxns) {
+        if (!activityItems.find(a => a.id === tx.id)) {
+          activityItems.push({
+            id: tx.id,
+            timestamp: tx.timestamp || new Date().toISOString(),
+            type: 'tax',
+            agent: 'Tallyfor AI',
+            message: tx.message || `${(tx.queryType||'analysis').replace(/_/g,' ')} completed`,
+            source: 'real',
+          })
+        }
+      }
+      for (const p of buyerPurchases) {
+        const pid = 'buy-' + p.id
+        if (!activityItems.find(a => a.id === pid)) {
+          activityItems.push({
+            id: pid,
+            timestamp: p.timestamp || new Date().toISOString(),
+            type: matchAgentToRole({ name: p.agentName, tags: [] }),
+            agent: p.agentName || 'Agent',
+            message: `Purchased ${p.queryType||'service'} — ${p.satisfactionScore||0}/100 satisfaction`,
+            source: 'real',
+          })
+        }
+      }
+      activityItems.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
+      if (activityItems.length > 50) activityItems.length = 50
+      renderFeed()
+    }
+
+    function generateSimEvent() {
+      const group = SIM_EVENTS[Math.floor(Math.random() * SIM_EVENTS.length)]
+      const msg = group.msgs[Math.floor(Math.random() * group.msgs.length)]
+        .replace('{prop}', PROP_NAMES[Math.floor(Math.random() * PROP_NAMES.length)])
+      addActivity({
+        id: 'sim-' + Date.now(),
+        timestamp: new Date().toISOString(),
+        type: group.type,
+        agent: group.agent,
+        message: msg,
+        source: 'simulated',
+      })
+    }
+
+    // ========================================================================
+    // Boot
+    // ========================================================================
+
+    async function init() {
+      // Add system boot message
+      addActivity({ id: 'boot', timestamp: new Date().toISOString(), type: 'system', agent: 'System', message: 'Perch STR dashboard initialized — connecting to AI agents...', source: 'simulated' })
+
+      await loadDashboard()
+      await Promise.all([loadBuyerData(), loadCommunityAgents(), loadTransactions()])
+      injectRealTransactions()
+      renderAgents()
+
+      // Add initial connected message
+      setTimeout(() => {
+        addActivity({ id: 'connected', timestamp: new Date().toISOString(), type: 'tax', agent: 'Tallyfor AI', message: 'Connected — monitoring 5 properties for tax optimization', source: 'simulated' })
+      }, 1500)
+
+      // Start simulated events
+      setTimeout(() => generateSimEvent(), 3000)
+      setInterval(generateSimEvent, 8000)
+
+      // Polling
+      setInterval(async () => { await loadDashboard(); injectRealTransactions() }, 15000)
+      setInterval(loadBuyerData, 15000)
+      setInterval(loadCommunityAgents, 10000)
+      setInterval(async () => { await loadTransactions(); injectRealTransactions() }, 10000)
+    }
+
+    init()
+  </script>
+</body>
+</html>
