@@ -14,7 +14,9 @@ if (!admin.apps.length) {
   const serviceAccountPath = resolve(process.cwd(), 'firebase-service-account.json')
 
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+    // Railway converts \n in env vars to literal newlines — fix before parsing
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT.replace(/\n/g, '\\n')
+    const serviceAccount = JSON.parse(raw)
     app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       databaseURL: 'https://perch-hackathon-default-rtdb.firebaseio.com',
