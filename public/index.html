@@ -194,6 +194,8 @@
       <!-- Service Catalog Sidebar -->
       <div class="col-span-1">
         <h2 class="text-sm font-semibold text-gray-900 mb-3">Services</h2>
+        <input id="service-search" type="text" placeholder="Search services..." oninput="filterServices(this.value)"
+          class="w-full border border-sand-200 rounded-lg px-3 py-2 text-sm bg-sand-50 mb-3 focus:outline-none focus:ring-2 focus:ring-perch-500 focus:border-transparent" />
         <div class="space-y-2" id="service-list"></div>
       </div>
 
@@ -259,7 +261,7 @@
       active.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:bg-sand-100')
       active.classList.add('bg-perch-600', 'text-white', 'shadow-sm')
     }
-    switchTab('nevermined')
+    switchTab('analysis')
 
     // Load agent identity
     async function loadIdentity() {
@@ -528,6 +530,15 @@
           </button>
         `).join('')
       } catch {}
+    }
+
+    function filterServices(query) {
+      const cards = document.getElementById('service-list').children
+      const q = query.toLowerCase()
+      for (const card of cards) {
+        const text = card.textContent.toLowerCase()
+        card.style.display = text.includes(q) ? '' : 'none'
+      }
     }
 
     // Init
