@@ -440,40 +440,21 @@ refreshWall();
 setInterval(refreshWall, 5000);
 
 // ============================================================================
-// QR Code Generation
+// QR Code Generation (using QR Server API)
 // ============================================================================
 
-(async () => {
-  // Load QRCode library
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js';
-  script.onload = () => {
-    const url = window.location.href.replace(/\/$/, '') + '/';
-    document.getElementById('qr-url-display').textContent = url;
+(() => {
+  const url = window.location.href.replace(/\/$/, '') + '/';
+  const encoded = encodeURIComponent(url);
+  document.getElementById('qr-url-display').textContent = url;
 
-    // Small QR in hero
-    QRCode.toCanvas(document.createElement('canvas'), url, {
-      width: 144, margin: 1, color: { dark: '#166534', light: '#ffffff' }
-    }, (err, canvas) => {
-      if (!err) {
-        canvas.style.borderRadius = '12px';
-        document.getElementById('qr-canvas').innerHTML = '';
-        document.getElementById('qr-canvas').appendChild(canvas);
-      }
-    });
+  // Small QR in hero
+  document.getElementById('qr-canvas').innerHTML =
+    `<img src="https://api.qrserver.com/v1/create-qr-code/?size=144x144&color=115e59&bgcolor=ffffff&data=${encoded}" alt="QR" class="rounded-xl" width="144" height="144">`;
 
-    // Large QR in modal
-    QRCode.toCanvas(document.createElement('canvas'), url, {
-      width: 280, margin: 2, color: { dark: '#14532d', light: '#ffffff' }
-    }, (err, canvas) => {
-      if (!err) {
-        canvas.style.borderRadius = '16px';
-        document.getElementById('qr-canvas-large').innerHTML = '';
-        document.getElementById('qr-canvas-large').appendChild(canvas);
-      }
-    });
-  };
-  document.head.appendChild(script);
+  // Large QR in modal
+  document.getElementById('qr-canvas-large').innerHTML =
+    `<img src="https://api.qrserver.com/v1/create-qr-code/?size=280x280&color=134e4a&bgcolor=ffffff&data=${encoded}" alt="QR" class="rounded-2xl" width="280" height="280">`;
 })();
 </script>
 </body>
