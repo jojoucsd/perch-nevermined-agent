@@ -66,6 +66,7 @@ app.get('/api/services', (_req: Request, res: Response) => {
 
   const taxOptimization = services.filter(s => s.category === 'Tax Optimization')
   const financialOptimization = services.filter(s => s.category === 'Financial Optimization')
+  const taxFiling = services.filter(s => s.category === 'Tax Filing')
 
   res.json({
     agent: 'Perch Tax & Finance Expert',
@@ -74,6 +75,7 @@ app.get('/api/services', (_req: Request, res: Response) => {
     categories: [
       { name: 'Tax Optimization', count: taxOptimization.length, services: taxOptimization },
       { name: 'Financial Optimization', count: financialOptimization.length, services: financialOptimization },
+      { name: 'Tax Filing', count: taxFiling.length, services: taxFiling },
     ],
     services,
     usage: {

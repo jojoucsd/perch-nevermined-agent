@@ -13,6 +13,10 @@ import {
   analyzeStateRelocation,
   analyzeInternational,
   analyzeTransferPricing,
+  analyzeSalesTaxNexus,
+  analyzeBusinessReturn,
+  analyzePersonalReturnOptimization,
+  analyzePersonalReturnFiling,
 } from '../finance/analysis.js'
 import { generateNarrative } from './reasoning.js'
 import { rtdb } from '../firebase/config.js'
@@ -87,13 +91,33 @@ export async function handleAnalysisRequest(request: AnalysisRequest): Promise<A
       break
     }
 
+    case 'sales_tax_nexus': {
+      data = await analyzeSalesTaxNexus(params)
+      break
+    }
+
+    case 'business_return': {
+      data = await analyzeBusinessReturn(params)
+      break
+    }
+
+    case 'personal_return_optimization': {
+      data = await analyzePersonalReturnOptimization(params)
+      break
+    }
+
+    case 'personal_return_filing': {
+      data = await analyzePersonalReturnFiling(params)
+      break
+    }
+
     default:
       throw new Error(`Unknown query_type: ${query_type}`)
   }
 
   // Generate narrative if requested or for complex queries
   let narrative: string | undefined
-  if (request.natural_language_query || ['portfolio_report', 'qbi_analysis', 'entity_recommendation', 'exchange_1031', 'state_relocation', 'international_analysis', 'transfer_pricing'].includes(query_type)) {
+  if (request.natural_language_query || ['portfolio_report', 'qbi_analysis', 'entity_recommendation', 'exchange_1031', 'state_relocation', 'international_analysis', 'transfer_pricing', 'sales_tax_nexus', 'business_return', 'personal_return_optimization', 'personal_return_filing'].includes(query_type)) {
     try {
       narrative = await generateNarrative(query_type, data, request.natural_language_query)
     } catch (err) {

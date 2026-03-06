@@ -733,3 +733,418 @@ export async function recommendEntityStructure(ownerId: string) {
       : `With $${totalSTRNet.toLocaleString()} in STR net income, Schedule E is simpler and the S-Corp savings don't justify the added complexity.`,
   }
 }
+
+// ============================================================================
+// State Sales Tax Nexus Analysis
+// ============================================================================
+
+export async function analyzeSalesTaxNexus(params: Record<string, unknown>) {
+  const states = (params.states as string[]) || ['CA', 'TX', 'FL', 'NY', 'CO', 'TN']
+  const annualSTRRevenue = (params.annual_str_revenue as number) || 120_000
+  const numberOfProperties = (params.number_of_properties as number) || 3
+  const platformsUsed = (params.platforms as string[]) || ['Airbnb', 'VRBO', 'Direct']
+  const averageNightlyRate = (params.avg_nightly_rate as number) || 200
+
+  // State STR/occupancy tax rules (simplified)
+  const stateRules: Record<string, { occupancyTax: number; salesTax: number; strRegistration: boolean; platformCollects: boolean; localTaxes: boolean; nexusThreshold: number; name: string }> = {
+    CA: { occupancyTax: 0.12, salesTax: 0.0725, strRegistration: true, platformCollects: true, localTaxes: true, nexusThreshold: 500_000, name: 'California' },
+    TX: { occupancyTax: 0.06, salesTax: 0.0625, strRegistration: true, platformCollects: true, localTaxes: true, nexusThreshold: 500_000, name: 'Texas' },
+    FL: { occupancyTax: 0.06, salesTax: 0.06, strRegistration: true, platformCollects: true, localTaxes: true, nexusThreshold: 100_000, name: 'Florida' },
+    NY: { occupancyTax: 0.0575, salesTax: 0.04, strRegistration: true, platformCollects: true, localTaxes: true, nexusThreshold: 500_000, name: 'New York' },
+    CO: { occupancyTax: 0.04, salesTax: 0.029, strRegistration: true, platformCollects: false, localTaxes: true, nexusThreshold: 100_000, name: 'Colorado' },
+    TN: { occupancyTax: 0.05, salesTax: 0.07, strRegistration: true, platformCollects: true, localTaxes: true, nexusThreshold: 500_000, name: 'Tennessee' },
+    HI: { occupancyTax: 0.1025, salesTax: 0.04, strRegistration: true, platformCollects: false, localTaxes: true, nexusThreshold: 100_000, name: 'Hawaii' },
+    AZ: { occupancyTax: 0.055, salesTax: 0.056, strRegistration: true, platformCollects: true, localTaxes: true, nexusThreshold: 200_000, name: 'Arizona' },
+    SC: { occupancyTax: 0.07, salesTax: 0.06, strRegistration: true, platformCollects: true, localTaxes: true, nexusThreshold: 100_000, name: 'South Carolina' },
+    OR: { occupancyTax: 0.015, salesTax: 0, strRegistration: true, platformCollects: false, localTaxes: true, nexusThreshold: 0, name: 'Oregon' },
+    NV: { occupancyTax: 0.12, salesTax: 0.0685, strRegistration: true, platformCollects: true, localTaxes: true, nexusThreshold: 100_000, name: 'Nevada' },
+    MT: { occupancyTax: 0.04, salesTax: 0, strRegistration: true, platformCollects: false, localTaxes: true, nexusThreshold: 0, name: 'Montana' },
+  }
+
+  const revenuePerState = annualSTRRevenue / states.length // simplified even split
+
+  const stateAnalysis = states.map(st => {
+    const rules = stateRules[st] || { occupancyTax: 0.05, salesTax: 0.05, strRegistration: true, platformCollects: false, localTaxes: true, nexusThreshold: 100_000, name: st }
+    const hasNexus = revenuePerState > 0 // physical presence = nexus for STR
+    const estimatedOccupancyTax = Math.round(revenuePerState * rules.occupancyTax)
+    const estimatedSalesTax = Math.round(revenuePerState * rules.salesTax)
+    const estimatedLocalTax = rules.localTaxes ? Math.round(revenuePerState * 0.03) : 0 // avg local surcharge
+
+    return {
+      state: st,
+      stateName: rules.name,
+      hasNexus,
+      nexusType: 'Physical presence (property located in state)',
+      occupancyTaxRate: `${(rules.occupancyTax * 100).toFixed(1)}%`,
+      salesTaxRate: `${(rules.salesTax * 100).toFixed(2)}%`,
+      estimatedOccupancyTax,
+      estimatedSalesTax,
+      estimatedLocalTax,
+      totalEstimatedTax: estimatedOccupancyTax + estimatedSalesTax + estimatedLocalTax,
+      platformCollects: rules.platformCollects,
+      registrationRequired: rules.strRegistration,
+      complianceActions: [
+        rules.strRegistration ? `Register for ${rules.name} STR/occupancy tax permit` : null,
+        !rules.platformCollects ? `Must self-collect and remit occupancy tax (${(rules.occupancyTax * 100).toFixed(1)}%)` : `Airbnb/VRBO collects state occupancy tax automatically`,
+        rules.localTaxes ? `Check county/city for additional local lodging taxes` : null,
+        `File ${rules.name} sales/occupancy tax returns (typically quarterly)`,
+      ].filter(Boolean),
+    }
+  })
+
+  const totalAnnualTaxLiability = stateAnalysis.reduce((sum, s) => sum + s.totalEstimatedTax, 0)
+
+  return {
+    summary: {
+      statesAnalyzed: states.length,
+      totalAnnualSTRRevenue: annualSTRRevenue,
+      totalEstimatedTaxLiability: totalAnnualTaxLiability,
+      effectiveTaxRate: `${((totalAnnualTaxLiability / annualSTRRevenue) * 100).toFixed(1)}%`,
+      statesRequiringRegistration: stateAnalysis.filter(s => s.registrationRequired).length,
+      statesRequiringSelfCollection: stateAnalysis.filter(s => !s.platformCollects).length,
+    },
+    stateAnalysis,
+    platformCoverage: {
+      airbnb: 'Collects occupancy tax in most states — verify per-state coverage',
+      vrbo: 'Collects in fewer states than Airbnb — more self-remittance required',
+      direct: 'Operator must collect and remit ALL applicable taxes',
+    },
+    deadlines: {
+      quarterlyFiling: 'Most states require quarterly occupancy tax returns',
+      annualRegistration: 'Renew STR permits annually in most jurisdictions',
+      penaltyForNonCompliance: 'Typically 5-25% penalty + interest on uncollected taxes',
+    },
+    recommendations: [
+      'Register for occupancy tax permits in all states where properties are located',
+      stateAnalysis.some(s => !s.platformCollects) ? 'Set aside estimated taxes monthly for self-collection states' : null,
+      'Consider using a tax automation service (Avalara, TaxJar) for multi-state compliance',
+      platformsUsed.includes('Direct') ? 'Direct bookings require YOU to collect all taxes — build into pricing' : null,
+      `Total estimated tax burden: $${totalAnnualTaxLiability.toLocaleString()}/yr (${((totalAnnualTaxLiability / annualSTRRevenue) * 100).toFixed(1)}% of revenue)`,
+    ].filter(Boolean),
+  }
+}
+
+// ============================================================================
+// Business Return Filing Readiness
+// ============================================================================
+
+export async function analyzeBusinessReturn(params: Record<string, unknown>) {
+  const ownerId = (params.owner_id as string) || 'owner-01'
+  const taxYear = (params.tax_year as number) || 2025
+  const entityType = (params.entity_type as string) || 'llc'
+
+  const owner = await getOwner(ownerId)
+  const entities = await getAllEntitiesByOwner(ownerId)
+
+  let totalRevenue = 0
+  let totalExpenses = 0
+  const entityDetails = []
+
+  for (const entity of entities) {
+    const entries = await getLedgerByEntity(entity.id)
+    const pnl = getEntityPnL(entries, entity.id, entity.name)
+    totalRevenue += pnl.revenue
+    totalExpenses += pnl.expenses
+    const properties = await getPropertiesByEntity(entity.id)
+
+    entityDetails.push({
+      entity: entity.name,
+      type: entity.type,
+      ein: entity.ein || 'Not assigned',
+      revenue: Math.round(pnl.revenue),
+      expenses: Math.round(pnl.expenses),
+      netIncome: Math.round(pnl.netIncome),
+      propertyCount: properties.length,
+      form: entity.type === 's_corp' ? 'Form 1120-S' : entity.type === 'partnership' ? 'Form 1065' : 'Schedule E / Schedule C',
+    })
+  }
+
+  const netIncome = totalRevenue - totalExpenses
+
+  // Determine required forms
+  const forms: { form: string; description: string; deadline: string; status: string }[] = []
+
+  for (const entity of entities) {
+    if (entity.type === 's_corp') {
+      forms.push({ form: 'Form 1120-S', description: `S-Corp return for ${entity.name}`, deadline: `March 15, ${taxYear + 1}`, status: entity.ein ? 'Ready' : 'Needs EIN' })
+      forms.push({ form: 'Schedule K-1', description: `K-1 distribution for each shareholder`, deadline: `March 15, ${taxYear + 1}`, status: 'Pending' })
+    } else if (entity.type === 'partnership') {
+      forms.push({ form: 'Form 1065', description: `Partnership return for ${entity.name}`, deadline: `March 15, ${taxYear + 1}`, status: entity.ein ? 'Ready' : 'Needs EIN' })
+      forms.push({ form: 'Schedule K-1', description: `K-1 for each partner`, deadline: `March 15, ${taxYear + 1}`, status: 'Pending' })
+    }
+  }
+
+  forms.push({ form: 'Schedule E', description: 'Rental real estate income/loss', deadline: `April 15, ${taxYear + 1}`, status: totalRevenue > 0 ? 'Data available' : 'No activity' })
+
+  if (netIncome > 400) {
+    forms.push({ form: 'Schedule SE', description: 'Self-employment tax', deadline: `April 15, ${taxYear + 1}`, status: 'Required' })
+  }
+
+  // Checklist
+  const checklist = [
+    { item: 'All 1099s received (1099-K, 1099-MISC, 1099-NEC)', status: 'Verify', priority: 'HIGH' },
+    { item: 'Platform income reports downloaded (Airbnb, VRBO)', status: 'Verify', priority: 'HIGH' },
+    { item: 'All expense receipts organized', status: totalExpenses > 0 ? 'Partial' : 'Not started', priority: 'HIGH' },
+    { item: 'Mileage log for property visits', status: 'Verify', priority: 'MEDIUM' },
+    { item: 'Home office deduction calculation', status: 'Optional', priority: 'LOW' },
+    { item: 'Depreciation schedules current', status: 'Verify', priority: 'HIGH' },
+    { item: 'Material participation hours documented', status: 'Verify', priority: 'HIGH' },
+    { item: 'Estimated tax payments reconciled', status: 'Verify', priority: 'MEDIUM' },
+    { item: 'State filing requirements identified', status: 'Verify', priority: 'MEDIUM' },
+    { item: 'EINs confirmed for all entities', status: entities.every(e => e.ein) ? 'Complete' : 'Incomplete', priority: 'HIGH' },
+  ]
+
+  return {
+    taxYear,
+    owner: owner ? { name: owner.name, filingStatus: owner.filingStatus } : { name: 'Unknown', filingStatus: 'single' },
+    entities: entityDetails,
+    financialSummary: {
+      totalRevenue: Math.round(totalRevenue),
+      totalExpenses: Math.round(totalExpenses),
+      netIncome: Math.round(netIncome),
+      estimatedSETax: netIncome > 400 ? Math.round(netIncome * 0.153) : 0,
+    },
+    requiredForms: forms,
+    filingChecklist: checklist,
+    deadlines: {
+      sCorpPartnership: `March 15, ${taxYear + 1}`,
+      personal: `April 15, ${taxYear + 1}`,
+      extensionDeadline: `October 15, ${taxYear + 1}`,
+      estimatedTaxQ1: `April 15, ${taxYear + 1}`,
+    },
+    recommendations: [
+      entities.some(e => e.type === 's_corp' || e.type === 'partnership') ? `File entity returns by March 15 — K-1s needed for personal return` : null,
+      netIncome > 50_000 ? 'Consider quarterly estimated tax payments to avoid underpayment penalty' : null,
+      'Reconcile all platform 1099-Ks with your actual revenue records',
+      'Ensure depreciation is being claimed on all eligible property improvements',
+      `Review ${taxYear} tax law changes that may affect your filing`,
+    ].filter(Boolean),
+  }
+}
+
+// ============================================================================
+// Personal Return Optimization
+// ============================================================================
+
+export async function analyzePersonalReturnOptimization(params: Record<string, unknown>) {
+  const ownerId = (params.owner_id as string) || 'owner-01'
+  const taxYear = (params.tax_year as number) || 2025
+
+  const owner = await getOwner(ownerId)
+  if (!owner) throw new Error(`Owner ${ownerId} not found`)
+
+  const entities = await getAllEntitiesByOwner(ownerId)
+  let totalSTRNet = 0
+  let totalDepreciation = 0
+
+  for (const entity of entities) {
+    const entries = await getLedgerByEntity(entity.id)
+    const pnl = getEntityPnL(entries, entity.id, entity.name)
+    totalSTRNet += pnl.netIncome
+    // Estimate depreciation from ledger
+    const depEntries = entries.filter(e => e.accountCode === '6800')
+    totalDepreciation += depEntries.reduce((sum, e) => sum + e.debit, 0)
+  }
+
+  const totalAGI = owner.w2Income + totalSTRNet
+  const standardDeduction = owner.filingStatus === 'married_joint' ? 30_000 : 15_000
+
+  // Check for missed deductions and optimization opportunities
+  const opportunities: { category: string; description: string; estimatedSavings: number; action: string; priority: string }[] = []
+
+  // QBI deduction
+  const qbiDeduction = Math.min(totalSTRNet * 0.20, totalAGI * 0.20)
+  if (totalSTRNet > 0 && totalAGI < (owner.filingStatus === 'married_joint' ? 383_900 : 191_950)) {
+    opportunities.push({
+      category: 'QBI Deduction',
+      description: `20% deduction on qualified business income ($${totalSTRNet.toLocaleString()})`,
+      estimatedSavings: Math.round(qbiDeduction * 0.24),
+      action: 'Ensure all STR income qualifies — document material participation',
+      priority: 'HIGH',
+    })
+  }
+
+  // Depreciation
+  if (totalDepreciation === 0 && entities.length > 0) {
+    opportunities.push({
+      category: 'Depreciation',
+      description: 'No depreciation claimed — residential rental property depreciates over 27.5 years',
+      estimatedSavings: Math.round(500_000 / 27.5 * 0.24), // estimate on $500k basis
+      action: 'Calculate depreciable basis and begin claiming annual depreciation',
+      priority: 'HIGH',
+    })
+  }
+
+  // Cost segregation
+  if (totalSTRNet > 50_000) {
+    opportunities.push({
+      category: 'Cost Segregation',
+      description: 'Accelerate depreciation by reclassifying building components to 5, 7, or 15-year life',
+      estimatedSavings: Math.round(totalSTRNet * 0.15),
+      action: 'Commission a cost segregation study for properties > $500k',
+      priority: 'MEDIUM',
+    })
+  }
+
+  // Retirement contributions
+  const maxSoloContribution = Math.min(totalSTRNet * 0.20, 69_000)
+  if (totalSTRNet > 20_000) {
+    opportunities.push({
+      category: 'Retirement',
+      description: `Solo 401(k) or SEP-IRA contribution (up to $${maxSoloContribution.toLocaleString()})`,
+      estimatedSavings: Math.round(maxSoloContribution * 0.24),
+      action: 'Open Solo 401(k) before Dec 31; fund by tax filing deadline',
+      priority: 'HIGH',
+    })
+  }
+
+  // HSA
+  if (owner.filingStatus === 'married_joint') {
+    opportunities.push({
+      category: 'HSA',
+      description: 'Health Savings Account — $8,300 family deduction (2025)',
+      estimatedSavings: Math.round(8_300 * 0.24),
+      action: 'Contribute to HSA if enrolled in high-deductible health plan',
+      priority: 'MEDIUM',
+    })
+  }
+
+  // Charitable / Donor-Advised Fund
+  if (totalAGI > 200_000) {
+    opportunities.push({
+      category: 'Charitable Giving',
+      description: 'Bunch charitable deductions via Donor-Advised Fund to exceed standard deduction',
+      estimatedSavings: Math.round(10_000 * 0.32),
+      action: 'Fund DAF before Dec 31 with appreciated securities to avoid capital gains',
+      priority: 'MEDIUM',
+    })
+  }
+
+  // Real Estate Professional Status
+  opportunities.push({
+    category: 'RE Professional Status',
+    description: '750+ hours in real estate = unlimited passive loss deductions against W-2 income',
+    estimatedSavings: totalSTRNet < 0 ? Math.round(Math.abs(totalSTRNet) * 0.24) : 0,
+    action: 'Track hours meticulously — must exceed time spent in W-2 job',
+    priority: totalSTRNet < 0 ? 'HIGH' : 'LOW',
+  })
+
+  const totalPotentialSavings = opportunities.reduce((sum, o) => sum + o.estimatedSavings, 0)
+
+  return {
+    taxYear,
+    owner: { name: owner.name, filingStatus: owner.filingStatus, w2Income: owner.w2Income },
+    currentPosition: {
+      w2Income: owner.w2Income,
+      strNetIncome: Math.round(totalSTRNet),
+      totalAGI: Math.round(totalAGI),
+      standardDeduction,
+      taxableIncome: Math.round(Math.max(0, totalAGI - standardDeduction)),
+    },
+    optimizationOpportunities: opportunities.sort((a, b) => b.estimatedSavings - a.estimatedSavings),
+    totalPotentialSavings,
+    itemizedVsStandard: {
+      standardDeduction,
+      estimatedItemized: Math.round(totalDepreciation + (totalAGI > 200_000 ? 15_000 : 5_000)), // rough SALT + mortgage
+      recommendation: totalDepreciation + 15_000 > standardDeduction ? 'Itemize' : 'Standard deduction',
+    },
+    actionPlan: [
+      ...opportunities.filter(o => o.priority === 'HIGH').map(o => `[HIGH] ${o.action}`),
+      ...opportunities.filter(o => o.priority === 'MEDIUM').map(o => `[MEDIUM] ${o.action}`),
+    ],
+  }
+}
+
+// ============================================================================
+// Personal Return Filing Guide
+// ============================================================================
+
+export async function analyzePersonalReturnFiling(params: Record<string, unknown>) {
+  const ownerId = (params.owner_id as string) || 'owner-01'
+  const taxYear = (params.tax_year as number) || 2025
+  const extensionFiled = (params.extension_filed as boolean) || false
+
+  const owner = await getOwner(ownerId)
+  const entities = await getAllEntitiesByOwner(ownerId)
+
+  let totalSTRNet = 0
+  const schedules: string[] = ['Schedule E (Rental Income)']
+
+  for (const entity of entities) {
+    const entries = await getLedgerByEntity(entity.id)
+    const pnl = getEntityPnL(entries, entity.id, entity.name)
+    totalSTRNet += pnl.netIncome
+
+    if (entity.type === 's_corp') schedules.push('Schedule K-1 (S-Corp)')
+    if (entity.type === 'partnership') schedules.push('Schedule K-1 (Partnership)')
+  }
+
+  if (totalSTRNet > 400) schedules.push('Schedule SE (Self-Employment Tax)')
+  if (owner && owner.w2Income > 0) schedules.push('W-2 (Wages)')
+  schedules.push('Schedule B (Interest/Dividends)')
+
+  const now = new Date()
+  const filingDeadline = new Date(`${taxYear + 1}-04-15`)
+  const extensionDeadline = new Date(`${taxYear + 1}-10-15`)
+  const daysUntilDeadline = Math.max(0, Math.ceil((filingDeadline.getTime() - now.getTime()) / 86400000))
+  const daysUntilExtension = Math.max(0, Math.ceil((extensionDeadline.getTime() - now.getTime()) / 86400000))
+
+  const totalAGI = (owner?.w2Income || 0) + totalSTRNet
+  const urgency = daysUntilDeadline <= 0 ? 'OVERDUE' : daysUntilDeadline <= 14 ? 'URGENT' : daysUntilDeadline <= 45 ? 'SOON' : 'ON TRACK'
+
+  return {
+    taxYear,
+    owner: owner ? { name: owner.name, filingStatus: owner.filingStatus } : { name: 'Unknown' },
+    filingStatus: {
+      urgency,
+      daysUntilDeadline,
+      filingDeadline: filingDeadline.toISOString().split('T')[0],
+      extensionDeadline: extensionDeadline.toISOString().split('T')[0],
+      extensionFiled,
+      daysUntilExtension,
+    },
+    form1040Walkthrough: [
+      { line: 'Line 1', description: 'Wages (W-2)', amount: owner?.w2Income || 0, source: 'W-2 from employer' },
+      { line: 'Line 8', description: 'Other income (Schedule E rental)', amount: Math.round(totalSTRNet), source: 'Schedule E' },
+      { line: 'Line 9', description: 'Total income', amount: Math.round(totalAGI), source: 'Sum of all income' },
+      { line: 'Line 12', description: 'Standard/Itemized deduction', amount: owner?.filingStatus === 'married_joint' ? 30_000 : 15_000, source: 'Standard deduction' },
+      { line: 'Line 13', description: 'QBI deduction (if eligible)', amount: Math.round(Math.min(totalSTRNet * 0.20, totalAGI * 0.20)), source: 'Form 8995' },
+      { line: 'Line 15', description: 'Taxable income', amount: Math.round(Math.max(0, totalAGI - (owner?.filingStatus === 'married_joint' ? 30_000 : 15_000))), source: 'Calculated' },
+    ],
+    requiredSchedules: [...new Set(schedules)],
+    documentsNeeded: [
+      { document: 'W-2', description: 'Wage and tax statement from employer', have: owner && owner.w2Income > 0 ? 'Likely' : 'N/A' },
+      { document: '1099-K', description: 'Platform income (Airbnb, VRBO)', have: 'Verify' },
+      { document: '1099-INT', description: 'Bank interest income', have: 'Verify' },
+      { document: '1098', description: 'Mortgage interest statement', have: 'Verify' },
+      { document: 'Property tax bills', description: 'For Schedule E deduction', have: 'Verify' },
+      { document: 'Insurance declarations', description: 'For Schedule E deduction', have: 'Verify' },
+      { document: 'Depreciation schedule', description: 'Form 4562', have: 'Verify' },
+      { document: 'Estimated tax payments', description: 'Form 1040-ES receipts', have: 'Verify' },
+    ],
+    extensionAnalysis: {
+      shouldExtend: daysUntilDeadline <= 14 && !extensionFiled,
+      extensionForm: 'Form 4868',
+      extensionDeadline: extensionDeadline.toISOString().split('T')[0],
+      note: 'Extension gives more time to FILE, not to PAY — estimate and pay taxes by April 15',
+      estimatedTaxDue: Math.round(totalAGI * 0.22), // rough estimate
+    },
+    estimatedPayments: {
+      q1: { due: `April 15, ${taxYear}`, amount: Math.round(totalAGI * 0.22 / 4) },
+      q2: { due: `June 15, ${taxYear}`, amount: Math.round(totalAGI * 0.22 / 4) },
+      q3: { due: `September 15, ${taxYear}`, amount: Math.round(totalAGI * 0.22 / 4) },
+      q4: { due: `January 15, ${taxYear + 1}`, amount: Math.round(totalAGI * 0.22 / 4) },
+    },
+    nextSteps: [
+      urgency === 'OVERDUE' ? 'FILE IMMEDIATELY — penalties accrue daily' : null,
+      urgency === 'URGENT' && !extensionFiled ? 'File Form 4868 extension TODAY and pay estimated tax due' : null,
+      'Gather all W-2s, 1099s, and 1098s',
+      'Reconcile platform income with 1099-K',
+      'Calculate depreciation for all rental properties',
+      'Document material participation hours',
+      totalSTRNet > 0 ? 'Calculate QBI deduction eligibility' : null,
+      'Review estimated tax payments made during the year',
+      'Choose: self-file (TurboTax/FreeTaxUSA) or hire CPA',
+    ].filter(Boolean),
+  }
+}

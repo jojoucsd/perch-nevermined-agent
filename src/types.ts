@@ -87,6 +87,10 @@ export type QueryType =
   | 'state_relocation'
   | 'international_analysis'
   | 'transfer_pricing'
+  | 'sales_tax_nexus'
+  | 'business_return'
+  | 'personal_return_optimization'
+  | 'personal_return_filing'
 
 export interface AnalysisRequest {
   query_type: QueryType
@@ -102,7 +106,7 @@ export interface AnalysisResponse {
   timestamp: string
 }
 
-export type ServiceCategory = 'Tax Optimization' | 'Financial Optimization'
+export type ServiceCategory = 'Tax Optimization' | 'Financial Optimization' | 'Tax Filing'
 
 export const SERVICE_CATALOG: Record<QueryType, { credits: number; description: string; category: ServiceCategory }> = {
   // --- Tax Optimization ---
@@ -114,7 +118,12 @@ export const SERVICE_CATALOG: Record<QueryType, { credits: number; description: 
   state_relocation: { credits: 3, description: 'State tax relocation analysis comparing tax burden across US states for RE investors', category: 'Tax Optimization' },
   international_analysis: { credits: 5, description: 'International real estate tax analysis — treaty benefits, FIRPTA, foreign tax credits', category: 'Tax Optimization' },
   transfer_pricing: { credits: 5, description: 'Transfer pricing analysis for cross-border RE management entities and intercompany transactions', category: 'Tax Optimization' },
+  sales_tax_nexus: { credits: 3, description: 'State sales tax nexus analysis — determine where STR operators must collect and remit occupancy/sales tax', category: 'Tax Optimization' },
   // --- Financial Optimization ---
   property_noi: { credits: 2, description: 'Net Operating Income analysis for a single property', category: 'Financial Optimization' },
   portfolio_report: { credits: 5, description: 'Full portfolio financial health across all entities', category: 'Financial Optimization' },
+  // --- Tax Filing ---
+  business_return: { credits: 5, description: 'Business tax return preparation checklist, Schedule C/E/K-1 analysis, and filing readiness assessment', category: 'Tax Filing' },
+  personal_return_optimization: { credits: 4, description: 'Personal return optimization — find missed deductions, credits, and strategies before filing', category: 'Tax Filing' },
+  personal_return_filing: { credits: 3, description: 'Personal tax return filing guide — 1040 walkthrough, deadline tracking, extension analysis', category: 'Tax Filing' },
 }
