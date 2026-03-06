@@ -215,3 +215,9 @@ export function startBuyerLoop() {
   // Then repeat every 5 minutes
   setInterval(runAutonomousCycle, 5 * 60 * 1000)
 }
+
+// Run standalone when called directly (npm run buyer:dev)
+import { fileURLToPath } from 'url'
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  startBuyerLoop()
+}

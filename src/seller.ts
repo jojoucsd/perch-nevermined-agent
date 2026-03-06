@@ -160,11 +160,17 @@ app.post('/api/analyze', async (req: Request, res: Response) => {
 
   // Verify the payment token
   const payments = await getPayments()
-  const verification = await payments.facilitator.verifyPermissions({
-    paymentRequired,
-    x402AccessToken: x402Token,
-    maxAmount: BigInt(credits),
-  })
+  let verification: { isValid: boolean; invalidReason?: string; payer?: string; agentRequestId?: string }
+  try {
+    verification = await payments.facilitator.verifyPermissions({
+      paymentRequired,
+      x402AccessToken: x402Token,
+      maxAmount: BigInt(credits),
+    })
+  } catch (err: any) {
+    res.status(402).json({ error: `Payment verification failed: ${err.message}` })
+    return
+  }
 
   if (!verification.isValid) {
     res.status(402).json({ error: verification.invalidReason })
@@ -261,11 +267,17 @@ app.post('/query', async (req: Request, res: Response) => {
   }
 
   const payments = await getPayments()
-  const verification = await payments.facilitator.verifyPermissions({
-    paymentRequired,
-    x402AccessToken: x402Token,
-    maxAmount: 1n
-  })
+  let verification: { isValid: boolean; invalidReason?: string; payer?: string; agentRequestId?: string }
+  try {
+    verification = await payments.facilitator.verifyPermissions({
+      paymentRequired,
+      x402AccessToken: x402Token,
+      maxAmount: 1n,
+    })
+  } catch (err: any) {
+    res.status(402).json({ error: `Payment verification failed: ${err.message}` })
+    return
+  }
 
   if (!verification.isValid) {
     res.status(402).json({ error: verification.invalidReason })

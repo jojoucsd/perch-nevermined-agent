@@ -52,10 +52,12 @@ export async function executePurchase(
     }
 
     // Build fallback endpoints to try
-    const base = agent.endpoint.replace(/\/$/, '')
+    const base = agent.endpoint.replace(/\/$/, '').replace(/\/api\/.*$/, '')
     const endpoints = [primaryEndpoint]
-    if (queryType && !primaryEndpoint.endsWith(`/${queryType}`)) endpoints.push(`${base}/${queryType}`)
-    if (!primaryEndpoint.endsWith('/query')) endpoints.push(`${base}/query`)
+    // Only add /query fallback if primary isn't already a specific API path
+    if (!primaryEndpoint.includes('/api/') && !primaryEndpoint.endsWith('/query')) {
+      endpoints.push(`${base}/query`)
+    }
     // Dedupe
     const uniqueEndpoints = [...new Set(endpoints)]
 
