@@ -225,6 +225,7 @@ export function createConnectRouter(): Router {
       const result = await onTestBuy(agent)
       res.json({ success: result.success, responseTimeMs: result.responseTimeMs, satisfactionScore: result.satisfactionScore, error: result.error })
     } catch (err: any) {
+      console.error('[TestBuy] Error:', err.message, err.stack?.slice(0, 300))
       res.status(500).json({ success: false, error: err.message })
     }
   })
