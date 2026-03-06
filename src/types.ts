@@ -102,15 +102,19 @@ export interface AnalysisResponse {
   timestamp: string
 }
 
-export const SERVICE_CATALOG: Record<QueryType, { credits: number; description: string }> = {
-  property_noi: { credits: 2, description: 'Net Operating Income analysis for a single property' },
-  tax_projection: { credits: 3, description: 'Federal tax estimate with bracket math and effective rate' },
-  qbi_analysis: { credits: 5, description: 'QBI deduction eligibility and phase-out calculation' },
-  expense_classify: { credits: 1, description: 'Classify an expense into tax-mapped account category' },
-  portfolio_report: { credits: 5, description: 'Full portfolio financial health across all entities' },
-  entity_recommendation: { credits: 3, description: 'Schedule E vs S-Corp entity structure analysis' },
-  exchange_1031: { credits: 4, description: '1031 like-kind exchange analysis with timeline, basis tracking, and boot calculation' },
-  state_relocation: { credits: 3, description: 'State tax relocation analysis comparing tax burden across US states for RE investors' },
-  international_analysis: { credits: 5, description: 'International real estate tax analysis — treaty benefits, FIRPTA, foreign tax credits' },
-  transfer_pricing: { credits: 5, description: 'Transfer pricing analysis for cross-border RE management entities and intercompany transactions' },
+export type ServiceCategory = 'Tax Optimization' | 'Financial Optimization'
+
+export const SERVICE_CATALOG: Record<QueryType, { credits: number; description: string; category: ServiceCategory }> = {
+  // --- Tax Optimization ---
+  tax_projection: { credits: 3, description: 'Federal tax estimate with bracket math and effective rate', category: 'Tax Optimization' },
+  qbi_analysis: { credits: 5, description: 'QBI deduction eligibility and phase-out calculation', category: 'Tax Optimization' },
+  expense_classify: { credits: 1, description: 'Classify an expense into tax-mapped account category', category: 'Tax Optimization' },
+  entity_recommendation: { credits: 3, description: 'Schedule E vs S-Corp entity structure analysis', category: 'Tax Optimization' },
+  exchange_1031: { credits: 4, description: '1031 like-kind exchange analysis with timeline, basis tracking, and boot calculation', category: 'Tax Optimization' },
+  state_relocation: { credits: 3, description: 'State tax relocation analysis comparing tax burden across US states for RE investors', category: 'Tax Optimization' },
+  international_analysis: { credits: 5, description: 'International real estate tax analysis — treaty benefits, FIRPTA, foreign tax credits', category: 'Tax Optimization' },
+  transfer_pricing: { credits: 5, description: 'Transfer pricing analysis for cross-border RE management entities and intercompany transactions', category: 'Tax Optimization' },
+  // --- Financial Optimization ---
+  property_noi: { credits: 2, description: 'Net Operating Income analysis for a single property', category: 'Financial Optimization' },
+  portfolio_report: { credits: 5, description: 'Full portfolio financial health across all entities', category: 'Financial Optimization' },
 }

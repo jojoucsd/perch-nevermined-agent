@@ -57,15 +57,25 @@ const transactions: Transaction[] = []
 // ============================================================================
 
 app.get('/api/services', (_req: Request, res: Response) => {
+  const services = Object.entries(SERVICE_CATALOG).map(([type, info]) => ({
+    query_type: type,
+    credits: info.credits,
+    description: info.description,
+    category: info.category,
+  }))
+
+  const taxOptimization = services.filter(s => s.category === 'Tax Optimization')
+  const financialOptimization = services.filter(s => s.category === 'Financial Optimization')
+
   res.json({
     agent: 'Perch Tax & Finance Expert',
     description: 'AI-powered real estate tax analysis, QBI optimization, and financial reporting for STR portfolios',
     planId: PLAN_ID,
-    services: Object.entries(SERVICE_CATALOG).map(([type, info]) => ({
-      query_type: type,
-      credits: info.credits,
-      description: info.description,
-    })),
+    categories: [
+      { name: 'Tax Optimization', count: taxOptimization.length, services: taxOptimization },
+      { name: 'Financial Optimization', count: financialOptimization.length, services: financialOptimization },
+    ],
+    services,
     usage: {
       method: 'POST',
       endpoint: '/api/analyze',
