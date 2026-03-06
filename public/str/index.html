@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Perch STR — Autonomous Property Management</title>
+  <title>Perch STR — Property Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -26,146 +26,227 @@
     .mono { font-family: 'JetBrains Mono', monospace; }
     @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
     .slide-in { animation: slideIn 0.3s ease-out; }
+    @keyframes agentPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(20,184,166,0); }
+      50% { box-shadow: 0 0 0 4px rgba(20,184,166,0.15); }
+    }
+    .agent-active { animation: agentPulse 3s ease-in-out infinite; }
     @keyframes thinking { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     .thinking { animation: thinking 1.5s ease-in-out infinite; }
   </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen">
+<body class="bg-sand-50 text-gray-800 min-h-screen">
 
-  <!-- Header -->
-  <header class="border-b border-gray-800 sticky top-0 z-50 bg-gray-950">
-    <div class="max-w-[1600px] mx-auto px-5 py-2.5 flex items-center justify-between">
+  <!-- Nav -->
+  <nav class="bg-sand-900 text-white sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-coral-500 rounded-lg flex items-center justify-center text-white font-bold">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
+        <div class="w-9 h-9 bg-coral-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
         </div>
-        <span class="text-lg font-black tracking-tight">Perch</span>
-        <span id="agent-badge" class="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full font-mono">READY</span>
-      </div>
-      <div class="flex items-center gap-5">
-        <div class="text-right text-xs leading-tight hidden sm:block">
-          <div class="text-gray-500" id="owner-info">Alex Morgan · single · TX</div>
-          <div class="text-gray-400">W-2: <span class="text-white">$145,000</span> · AGI: <span id="agi-display" class="text-white">$0</span></div>
-        </div>
-        <div class="flex items-center gap-1 text-xs">
-          <a href="/" class="px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-all">Tallyfor AI</a>
-          <a href="/buyer/" class="px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-all">Buyer</a>
-          <a href="/connect/" class="px-2.5 py-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-all">Connect</a>
-        </div>
-        <button id="demo-btn" onclick="startDemo()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-bold transition-all">&#9654; Start Demo</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main layout: sidebar + reasoning log -->
-  <div class="flex" style="height: calc(100vh - 49px);">
-
-    <!-- Sidebar -->
-    <div class="w-72 border-r border-gray-800 overflow-y-auto p-3 flex-shrink-0">
-
-      <!-- Wallet -->
-      <div class="bg-gray-900 rounded-xl p-3.5 border border-gray-800 mb-3">
-        <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">Agent Wallet</div>
-        <div id="wallet-display" class="text-2xl font-black text-emerald-400 transition-all duration-500">$25,000.00</div>
-      </div>
-
-      <!-- Entity: S-Corp -->
-      <div class="bg-gray-900 rounded-xl p-3 border border-gray-800 mb-2">
-        <div class="flex items-center justify-between mb-1.5">
-          <div class="text-xs font-bold text-white truncate">Perch Properties LLC</div>
-          <span class="text-xs bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded flex-shrink-0 ml-1">S-Corp</span>
-        </div>
-        <div class="grid grid-cols-3 gap-1 text-xs">
-          <div><div class="text-gray-500">Rev</div><div id="ent1-rev" class="text-white font-semibold">$68,500</div></div>
-          <div><div class="text-gray-500">Exp</div><div id="ent1-exp" class="text-white font-semibold">$52,418</div></div>
-          <div><div class="text-gray-500">Net</div><div id="ent1-net" class="text-emerald-400 font-semibold">$16,082</div></div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight">Perch STR</h1>
+          <p class="text-xs text-sand-400 -mt-0.5">Property Management</p>
         </div>
       </div>
-
-      <!-- Entity: Schedule E -->
-      <div class="bg-gray-900 rounded-xl p-3 border border-gray-800 mb-2">
-        <div class="flex items-center justify-between mb-1.5">
-          <div class="text-xs font-bold text-white truncate">Alex Morgan (Schedule E)</div>
-          <span class="text-xs bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded flex-shrink-0 ml-1">Sched E</span>
+      <div class="flex items-center gap-4">
+        <span id="agent-badge" class="flex items-center gap-2 text-xs text-perch-400 font-medium bg-sand-800 px-3 py-1.5 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-perch-500 pulse-dot"></span>
+          <span id="agent-badge-text">Powered by AI Agents</span>
+        </span>
+        <div class="flex items-center gap-1 text-sm">
+          <a href="/" class="px-3 py-1.5 rounded-lg text-sand-400 hover:text-white hover:bg-sand-800 transition-all">Tallyfor AI</a>
+          <a href="/buyer/" class="px-3 py-1.5 rounded-lg text-sand-400 hover:text-white hover:bg-sand-800 transition-all">Buyer</a>
+          <a href="/connect/" class="px-3 py-1.5 rounded-lg text-sand-400 hover:text-white hover:bg-sand-800 transition-all">Connect</a>
         </div>
-        <div class="grid grid-cols-3 gap-1 text-xs">
-          <div><div class="text-gray-500">Rev</div><div id="ent2-rev" class="text-white font-semibold">$34,200</div></div>
-          <div><div class="text-gray-500">Exp</div><div id="ent2-exp" class="text-white font-semibold">$25,982</div></div>
-          <div><div class="text-gray-500">Net</div><div id="ent2-net" class="text-emerald-400 font-semibold">$8,218</div></div>
-        </div>
-      </div>
-
-      <!-- Connected Agents -->
-      <div class="text-xs text-gray-500 uppercase tracking-wider mb-1.5 mt-3">Connected Agents</div>
-      <div id="sidebar-agents" class="space-y-1.5 mb-3">
-        <!-- Filled by JS -->
-      </div>
-
-      <!-- Properties with MP bars -->
-      <div class="text-xs text-gray-500 uppercase tracking-wider mb-1.5 mt-3">Properties · Material Participation</div>
-      <div id="properties-mp" class="space-y-1.5">
-        <!-- Filled by JS -->
-      </div>
-
-      <!-- QBI Phase-Out Gauge -->
-      <div id="qbi-gauge" class="bg-gray-900 rounded-xl p-3 border border-orange-900 border-opacity-50 mt-3">
-        <div class="text-xs text-orange-400 uppercase tracking-wider font-bold mb-1.5">&#9889; QBI Phase-Out</div>
-        <div class="relative h-2.5 bg-gray-700 rounded-full overflow-hidden mb-1.5">
-          <div id="qbi-bar" class="absolute left-0 top-0 h-full bg-gradient-to-r from-emerald-600 to-orange-500 rounded-full transition-all duration-1000" style="width: 0%"></div>
-          <div class="absolute top-0 h-full w-0.5 bg-red-500" style="left: 79.3%"></div>
-        </div>
-        <div class="flex justify-between text-xs text-gray-600">
-          <span>$0</span>
-          <span class="text-orange-400 text-xs">$191,950</span>
-          <span>$241,950</span>
-        </div>
-        <div class="text-xs text-gray-400 mt-1">AGI: <span id="qbi-agi" class="text-white font-bold">$0</span> · QBI: <span id="qbi-ded" class="text-emerald-400">$0</span></div>
-        <div class="text-xs text-gray-500">Est. Tax: <span id="qbi-tax" class="text-white">$0</span> · Rate: <span id="qbi-rate">0%</span></div>
+        <button id="demo-btn" onclick="startDemo()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-bold transition-all text-white">&#9654; Run Demo</button>
       </div>
     </div>
+  </nav>
 
-    <!-- Main: Reasoning Log -->
-    <div class="flex-1 flex flex-col min-w-0">
-      <div class="px-5 py-2.5 border-b border-gray-800 flex items-center gap-2">
-        <div id="log-dot" class="w-2 h-2 rounded-full bg-gray-600"></div>
-        <span class="text-sm font-bold">Agent Reasoning Log</span>
-        <span id="event-count" class="text-xs text-gray-500">0 events</span>
-        <span id="thinking-indicator" class="text-xs text-yellow-400 ml-2 hidden thinking">&#9679; Agent is reasoning...</span>
-      </div>
-      <div id="reasoning-log" class="flex-1 overflow-y-auto px-5 py-3">
-        <div id="empty-state" class="flex flex-col items-center justify-center h-full text-gray-600 text-sm">
-          <div class="text-4xl mb-3">&#127968;</div>
-          <div class="font-semibold mb-1">Perch Agent Ready</div>
-          <div class="text-xs text-gray-700">Click "Start Demo" to watch autonomous booking decisions</div>
-          <div class="text-xs text-gray-700 mt-0.5">Each decision is powered by a connected AI agent</div>
+  <!-- Hero Stats Bar -->
+  <section class="bg-white border-b border-sand-200">
+    <div class="max-w-7xl mx-auto px-6 py-6">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="bg-sand-50 rounded-xl p-4 border border-sand-200">
+          <div class="text-xs text-sand-500 font-medium uppercase tracking-wide">Monthly Revenue</div>
+          <div id="stat-revenue" class="text-2xl font-bold text-sand-900 mt-1">$0</div>
+          <div class="text-xs text-green-600 mt-1">+12% vs last month</div>
+        </div>
+        <div class="bg-sand-50 rounded-xl p-4 border border-sand-200">
+          <div class="text-xs text-sand-500 font-medium uppercase tracking-wide">Agent Wallet</div>
+          <div id="stat-wallet" class="text-2xl font-bold text-emerald-700 mt-1">$25,000</div>
+          <div class="text-xs text-sand-500 mt-1">operating balance</div>
+        </div>
+        <div class="bg-sand-50 rounded-xl p-4 border border-sand-200">
+          <div class="text-xs text-sand-500 font-medium uppercase tracking-wide">Avg Occupancy</div>
+          <div id="stat-occupancy" class="text-2xl font-bold text-sand-900 mt-1">0%</div>
+          <div class="text-xs text-perch-600 mt-1">5 properties</div>
+        </div>
+        <div class="bg-perch-50 rounded-xl p-4 border border-perch-200">
+          <div class="text-xs text-perch-600 font-medium uppercase tracking-wide">Tax Savings (AI)</div>
+          <div id="stat-tax" class="text-2xl font-bold text-perch-800 mt-1">$0</div>
+          <div class="text-xs text-perch-600 mt-1">via Tallyfor AI</div>
+        </div>
+        <div class="bg-tally-100 rounded-xl p-4 border border-tally-200">
+          <div class="text-xs text-tally-800 font-medium uppercase tracking-wide">Active Agents</div>
+          <div id="stat-agents" class="text-2xl font-bold text-tally-800 mt-1">0</div>
+          <div class="text-xs text-tally-600 mt-1">connected & buying</div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+
+    <!-- Property Portfolio -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-sand-900">Property Portfolio</h2>
+        <span class="text-xs bg-sand-200 text-sand-600 px-2.5 py-1 rounded-full font-medium">5 Properties · 2 Entities</span>
+      </div>
+      <div id="properties-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      </div>
+    </section>
+
+    <!-- Two columns: left panels | right activity feed -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left 2/3: agents + financials -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- Agent Integrations -->
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-sand-900">AI Agent Integrations</h2>
+            <a href="/connect/" class="text-sm text-perch-600 hover:text-perch-800 font-medium transition-colors">+ Add Agent</a>
+          </div>
+          <div id="agents-panel" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          </div>
+        </section>
+
+        <!-- Financial row: entities + QBI + MP -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <!-- Entity Trial Balances -->
+          <div class="bg-white rounded-xl border border-sand-200 p-5">
+            <h3 class="font-bold text-sand-900 mb-4">Entity Trial Balances</h3>
+            <div class="space-y-3">
+              <div class="bg-sand-50 rounded-lg p-3 border border-sand-200">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-semibold text-sand-900">Perch Properties LLC</span>
+                  <span class="text-xs bg-sand-200 text-sand-600 px-1.5 py-0.5 rounded">S-Corp</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                  <div><div class="text-sand-500">Revenue</div><div id="ent1-rev" class="font-semibold text-sand-900">$0</div></div>
+                  <div><div class="text-sand-500">Expenses</div><div id="ent1-exp" class="font-semibold text-coral-500">$0</div></div>
+                  <div><div class="text-sand-500">Net</div><div id="ent1-net" class="font-semibold text-perch-700">$0</div></div>
+                </div>
+              </div>
+              <div class="bg-sand-50 rounded-lg p-3 border border-sand-200">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-semibold text-sand-900">Alex Morgan</span>
+                  <span class="text-xs bg-sand-200 text-sand-600 px-1.5 py-0.5 rounded">Sched E</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                  <div><div class="text-sand-500">Revenue</div><div id="ent2-rev" class="font-semibold text-sand-900">$0</div></div>
+                  <div><div class="text-sand-500">Expenses</div><div id="ent2-exp" class="font-semibold text-coral-500">$0</div></div>
+                  <div><div class="text-sand-500">Net</div><div id="ent2-net" class="font-semibold text-perch-700">$0</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- QBI + MP stacked -->
+          <div class="space-y-4">
+            <!-- QBI Phase-Out Gauge -->
+            <div class="bg-white rounded-xl border border-orange-200 p-5">
+              <h3 class="font-bold text-orange-700 mb-3">&#9889; QBI Phase-Out</h3>
+              <div class="relative h-3 bg-sand-200 rounded-full overflow-hidden mb-2">
+                <div id="qbi-bar" class="absolute left-0 top-0 h-full bg-gradient-to-r from-emerald-500 to-orange-500 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                <div class="absolute top-0 h-full w-0.5 bg-red-500" style="left: 79.3%"></div>
+              </div>
+              <div class="flex justify-between text-xs text-sand-400 mb-2">
+                <span>$0</span>
+                <span class="text-orange-600 font-medium">$191,950</span>
+                <span>$241,950</span>
+              </div>
+              <div class="space-y-1 text-xs">
+                <div class="flex justify-between"><span class="text-sand-500">Combined AGI</span><span id="qbi-agi" class="font-semibold text-sand-900">$0</span></div>
+                <div class="flex justify-between"><span class="text-sand-500">QBI Deduction</span><span id="qbi-ded" class="font-semibold text-perch-700">$0</span></div>
+                <div class="flex justify-between"><span class="text-sand-500">Est. Federal Tax</span><span id="qbi-tax" class="font-semibold text-sand-900">$0</span></div>
+                <div class="flex justify-between"><span class="text-sand-500">Effective Rate</span><span id="qbi-rate" class="font-semibold text-sand-900">0%</span></div>
+              </div>
+            </div>
+
+            <!-- Material Participation -->
+            <div class="bg-white rounded-xl border border-sand-200 p-5">
+              <h3 class="font-bold text-sand-900 mb-3">Material Participation</h3>
+              <p class="text-xs text-sand-500 mb-3">750 hours = passive → active loss conversion</p>
+              <div id="mp-bars" class="space-y-3"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agent Marketplace Mini -->
+        <div class="bg-white rounded-xl border border-sand-200 p-5">
+          <h3 class="font-bold text-sand-900 mb-3">Agent Marketplace</h3>
+          <div class="flex items-center gap-6 mb-4">
+            <div class="flex gap-1 text-sm"><span class="text-sand-500">Marketplace:</span><span id="mkt-discovered" class="font-medium text-sand-900">0</span></div>
+            <div class="flex gap-1 text-sm"><span class="text-sand-500">Community:</span><span id="mkt-community" class="font-medium text-sand-900">0</span></div>
+            <div class="flex gap-1 text-sm"><span class="text-sand-500">Purchases:</span><span id="mkt-purchases" class="font-medium text-sand-900">0</span></div>
+            <div class="ml-auto flex gap-2">
+              <a href="/buyer/" class="px-3 py-1.5 bg-tally-600 text-white text-xs font-medium rounded-lg hover:bg-tally-800 transition-colors">Browse</a>
+              <a href="/connect/" class="px-3 py-1.5 bg-perch-600 text-white text-xs font-medium rounded-lg hover:bg-perch-800 transition-colors">Connect</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right 1/3: Activity Feed (sticky) -->
+      <div>
+        <div class="sticky top-16">
+          <div class="flex items-center gap-2 mb-4">
+            <h2 class="text-xl font-bold text-sand-900">Agent Activity</h2>
+            <span id="log-dot" class="w-2 h-2 rounded-full bg-green-500 pulse-dot"></span>
+            <span id="thinking-indicator" class="text-xs text-amber-600 ml-1 hidden thinking">Agent reasoning...</span>
+          </div>
+          <div id="activity-feed" class="bg-sand-900 rounded-xl p-4 overflow-y-auto space-y-1 mono text-sm" style="max-height: calc(100vh - 140px);">
+            <div class="text-sand-500 text-xs">Waiting for agent activity...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-sand-900 text-sand-400 py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold text-white">Perch STR</span>
+        <span class="text-sand-600">&mdash;</span>
+        <span>Powered by AI Agents</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/" class="hover:text-white transition-colors">Tallyfor AI</a>
+        <a href="/buyer/" class="hover:text-white transition-colors">Buyer</a>
+        <a href="/connect/" class="hover:text-white transition-colors">Connect</a>
+        <a href="/brand/" class="hover:text-white transition-colors">Brand</a>
+      </div>
+    </div>
+  </footer>
 
   <script>
-    // ================================================================
-    // FINANCIAL ENGINE (from Tallyfor)
-    // ================================================================
-
-    const CHART_OF_ACCOUNTS = {
-      "1100": { name: "Operating Cash", type: "asset" },
-      "1510": { name: "Accumulated Depreciation", type: "asset" },
-      "4100": { name: "Rental Income", type: "revenue" },
-      "5100": { name: "Cleaning Expense", type: "expense" },
-      "5200": { name: "Platform Fees", type: "expense" },
-      "6100": { name: "Repairs & Maintenance", type: "expense" },
-      "6800": { name: "Depreciation", type: "expense" },
-      "6900": { name: "Other Operating Expense", type: "expense" },
-    };
+    // ========================================================================
+    // FINANCIAL ENGINE
+    // ========================================================================
 
     const BRACKETS_SINGLE = [
       [11600, 0.10], [47150, 0.12], [100525, 0.22],
       [191950, 0.24], [243725, 0.32], [609350, 0.35], [Infinity, 0.37],
     ];
-
     const QBI_START = 191950, QBI_END = 241950, STD_DED = 14600;
 
     function calcFederalTax(taxableIncome) {
@@ -193,8 +274,6 @@
       }
       const totalAgi = OWNER.w2Income + totalRentalNet;
       const distToPhaseout = Math.max(0, QBI_START - totalAgi);
-      const nearPhaseout = distToPhaseout > 0 && distToPhaseout <= 30000;
-
       let qbiDeduction = 0;
       if (totalAgi <= QBI_START) {
         qbiDeduction = Math.max(0, totalRentalNet * 0.20);
@@ -204,16 +283,13 @@
       }
       const preQbiTaxable = totalAgi - STD_DED;
       qbiDeduction = Math.min(qbiDeduction, preQbiTaxable * 0.20);
-
       const taxableIncome = Math.max(0, totalAgi - STD_DED - qbiDeduction);
       const estimatedTax = calcFederalTax(taxableIncome);
       const taxWithoutQbi = calcFederalTax(Math.max(0, totalAgi - STD_DED));
-      const qbiTaxImpact = taxWithoutQbi - estimatedTax;
-
       return {
         totalAgi, totalRentalNet, taxableIncome, qbiDeduction,
-        qbiEligible: totalAgi < QBI_END, qbiTaxImpact,
-        nearPhaseout, distToPhaseout, estimatedTax,
+        qbiTaxImpact: taxWithoutQbi - estimatedTax,
+        distToPhaseout, estimatedTax,
         effectiveRate: totalAgi > 0 ? estimatedTax / totalAgi : 0,
         marginalRate: getMarginalRate(taxableIncome),
       };
@@ -223,141 +299,190 @@
       const entries = ledger.filter(e => e.entityId === entityId);
       let totalRevenue = 0, totalExpenses = 0;
       for (const e of entries) {
-        if (e.accountType === "revenue") totalRevenue += (e.credit - e.debit);
-        else if (e.accountType === "expense") totalExpenses += (e.debit - e.credit);
+        if (e.accountType === 'revenue') totalRevenue += (e.credit - e.debit);
+        else if (e.accountType === 'expense') totalExpenses += (e.debit - e.credit);
       }
       return { totalRevenue, totalExpenses, netIncome: totalRevenue - totalExpenses };
     }
 
-    // ================================================================
+    // ========================================================================
     // SEED DATA
-    // ================================================================
+    // ========================================================================
 
-    const OWNER = { name: "Alex Morgan", filingStatus: "single", w2Income: 145000, state: "TX" };
-
+    const OWNER = { name: 'Alex Morgan', filingStatus: 'single', w2Income: 145000, state: 'TX' };
     const ENTITIES = [
-      { id: "ent-01", name: "Perch Properties LLC", type: "s_corp" },
-      { id: "ent-02", name: "Alex Morgan (Schedule E)", type: "schedule_e" },
+      { id: 'ent-01', name: 'Perch Properties LLC', type: 's_corp' },
+      { id: 'ent-02', name: 'Alex Morgan (Schedule E)', type: 'schedule_e' },
     ];
-
-    const PROPERTIES = [
-      { id: "p1", name: "East Side Bungalow", addr: "2847 E Cesar Chavez St", entityId: "ent-01", rate: 189, cleaning: 95, annualDepr: 10500, mpHours: 420 },
-      { id: "p2", name: "SoCo Modern", addr: "1612 S Congress Ave", entityId: "ent-01", rate: 215, cleaning: 110, annualDepr: 11591, mpHours: 380 },
-      { id: "p3", name: "Zilker Cottage", addr: "1923 Kinney Ave", entityId: "ent-02", rate: 175, cleaning: 85, annualDepr: 9273, mpHours: 710 },
-      { id: "p4", name: "Domain Studio", addr: "3208 Esperanza Crossing", entityId: "ent-02", rate: 145, cleaning: 75, annualDepr: 7500, mpHours: 290 },
-      { id: "p5", name: "Lake Travis Retreat", addr: "5400 Marina Cove", entityId: "ent-01", rate: 275, cleaning: 135, annualDepr: 13236, mpHours: 185 },
+    const SEED_PROPERTIES = [
+      { id: 'p1', name: 'East Side Bungalow', addr: '2847 E Cesar Chavez St, Austin, TX', entityId: 'ent-01', rate: 189, cleaning: 95, annualDepr: 10500, mpHours: 420, occupancy: 75, ytdRevenue: 28600, ytdExpenses: 14700 },
+      { id: 'p2', name: 'SoCo Modern', addr: '1612 S Congress Ave, Austin, TX', entityId: 'ent-01', rate: 215, cleaning: 110, annualDepr: 11591, mpHours: 380, occupancy: 78, ytdRevenue: 42500, ytdExpenses: 18200 },
+      { id: 'p3', name: 'Zilker Cottage', addr: '1923 Kinney Ave, Austin, TX', entityId: 'ent-02', rate: 175, cleaning: 85, annualDepr: 9273, mpHours: 710, occupancy: 71, ytdRevenue: 38900, ytdExpenses: 21400 },
+      { id: 'p4', name: 'Domain Studio', addr: '3208 Esperanza Crossing, Austin, TX', entityId: 'ent-02', rate: 145, cleaning: 75, annualDepr: 7500, mpHours: 290, occupancy: 85, ytdRevenue: 24800, ytdExpenses: 11200 },
+      { id: 'p5', name: 'Lake Travis Retreat', addr: '5400 Marina Cove, Austin, TX', entityId: 'ent-01', rate: 275, cleaning: 135, annualDepr: 13236, mpHours: 185, occupancy: 82, ytdRevenue: 31200, ytdExpenses: 12800 },
     ];
-
-    const AGENT_DEFS = [
-      { role: 'tax',       name: 'Tallyfor AI',        icon: '&#128200;', desc: 'Tax optimization & bookkeeping' },
-      { role: 'cleaning',  name: 'CleanCo Austin',     icon: '&#10024;',  desc: 'Turnover & deep cleaning' },
-      { role: 'payment',   name: 'PayCollect AI',      icon: '&#128179;', desc: 'Guest payments & payouts' },
-      { role: 'pricing',   name: 'RateGenius',         icon: '&#128178;', desc: 'Dynamic rate optimization' },
-      { role: 'insurance', name: 'InsureStay',         icon: '&#128737;', desc: 'Liability & damage coverage' },
-      { role: 'tours',     name: 'LocalXP',            icon: '&#127758;', desc: 'Guest experiences & tours' },
-      { role: 'ads',       name: 'ZeroClick',          icon: '&#9889;',   desc: 'Contextual ad placement' },
-      { role: 'scraping',  name: 'Apify',              icon: '&#128269;', desc: 'Competitor market data' },
-    ];
-
-    // ================================================================
-    // STATE
-    // ================================================================
-
-    let wallet = 25000;
-    let properties = PROPERTIES.map(p => ({ ...p }));
-    let ledger = [];
-    let events = [];
-    let isRunning = false;
-    let aborted = false;
 
     function seedLedger() {
       const entries = [];
-      const add = (eid, code, type, dr, cr, desc) =>
-        entries.push({ entityId: eid, accountCode: code, accountType: type, debit: dr, credit: cr, description: desc });
-      // ent-01: S-Corp YTD
-      add("ent-01", "1100", "asset", 68500, 0, "YTD rental income");
-      add("ent-01", "4100", "revenue", 0, 68500, "YTD rental income");
-      add("ent-01", "6900", "expense", 28900, 0, "YTD operating expenses");
-      add("ent-01", "1100", "asset", 0, 28900, "YTD operating expenses");
+      const add = (eid, code, type, dr, cr) =>
+        entries.push({ entityId: eid, accountCode: code, accountType: type, debit: dr, credit: cr });
+      add('ent-01', '1100', 'asset', 68500, 0);
+      add('ent-01', '4100', 'revenue', 0, 68500);
+      add('ent-01', '6900', 'expense', 28900, 0);
+      add('ent-01', '1100', 'asset', 0, 28900);
       const d1 = Math.round((10500 + 11591 + 13236) * 8 / 12);
-      add("ent-01", "6800", "expense", d1, 0, "YTD depreciation");
-      add("ent-01", "1510", "asset", 0, d1, "YTD accumulated depreciation");
-      // ent-02: Schedule E YTD
-      add("ent-02", "1100", "asset", 34200, 0, "YTD rental income");
-      add("ent-02", "4100", "revenue", 0, 34200, "YTD rental income");
-      add("ent-02", "6900", "expense", 14800, 0, "YTD operating expenses");
-      add("ent-02", "1100", "asset", 0, 14800, "YTD operating expenses");
+      add('ent-01', '6800', 'expense', d1, 0);
+      add('ent-01', '1510', 'asset', 0, d1);
+      add('ent-02', '1100', 'asset', 34200, 0);
+      add('ent-02', '4100', 'revenue', 0, 34200);
+      add('ent-02', '6900', 'expense', 14800, 0);
+      add('ent-02', '1100', 'asset', 0, 14800);
       const d2 = Math.round((9273 + 7500) * 8 / 12);
-      add("ent-02", "6800", "expense", d2, 0, "YTD depreciation");
-      add("ent-02", "1510", "asset", 0, d2, "YTD accumulated depreciation");
+      add('ent-02', '6800', 'expense', d2, 0);
+      add('ent-02', '1510', 'asset', 0, d2);
       return entries;
     }
 
-    // ================================================================
-    // DISPLAY HELPERS
-    // ================================================================
+    // ========================================================================
+    // STATE
+    // ========================================================================
 
-    function fmt(n) { return "$" + Math.round(n).toLocaleString(); }
-    function fmtD(n) { return "$" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+    let wallet = 25000;
+    let properties = SEED_PROPERTIES.map(p => ({ ...p }));
+    let ledger = seedLedger();
+    let buyerPurchases = [];
+    let buyerAgents = [];
+    let communityAgents = [];
+    let sellerTxns = [];
+    let activityItems = [];
+    let isRunning = false;
+    let aborted = false;
 
-    const EVENT_ICONS = {
-      booking_received:    '&#128229;',  // 📥
-      agent_reasoning:     '&#129504;',  // 🧠
-      booking_accepted:    '&#9989;',    // ✅
-      booking_rejected:    '&#10060;',   // ❌
-      vendor_dispatched:   '&#129529;',  // 🧹
-      payment_authorized:  '&#128184;',  // 💸
-      wallet_income:       '&#128176;',  // 💰
-      revenue_recorded:    '&#128210;',  // 📒
-      expense_recorded:    '&#128210;',  // 📒
-      tax_updated:         '&#128202;',  // 📊
-      mp_alert:            '&#128293;',  // 🔥
-      mp_action:           '&#128197;',  // 📅
-      qbi_alert:           '&#9889;',    // ⚡
-      strategy_adjusted:   '&#127919;',  // 🎯
-      maintenance_request: '&#128295;',  // 🔧
-      maintenance_approved:'&#9989;',    // ✅
-      budget_alert:        '&#128680;',  // 🚨
-      insurance_check:     '&#128737;',  // 🛡
-      ad_placement:        '&#9889;',    // ⚡
-      market_data:         '&#128269;',  // 🔍
-      system:              '&#9881;',    // ⚙
+    const PROP_SIM = {
+      'p1': { status: 'occupied', guest: 'Sarah K.', nightsLeft: 2, next: 'Michael R., Mar 9' },
+      'p2': { status: 'vacant', guest: null, next: 'Jennifer L., Mar 10' },
+      'p3': { status: 'cleaning', guest: null, next: 'Emma W., Mar 7' },
+      'p4': { status: 'occupied', guest: 'Robert & Lisa T.', nightsLeft: 6, next: null },
+      'p5': { status: 'maintenance', guest: null, next: 'Chris D., Mar 8' },
     };
 
-    const EVENT_COLORS = {
-      booking_received: 'text-blue-400',
-      agent_reasoning: 'text-yellow-400',
-      booking_accepted: 'text-emerald-400',
-      booking_rejected: 'text-red-400',
-      vendor_dispatched: 'text-cyan-400',
-      payment_authorized: 'text-orange-400',
-      wallet_income: 'text-emerald-300',
-      revenue_recorded: 'text-purple-400',
-      expense_recorded: 'text-purple-300',
-      tax_updated: 'text-purple-300',
-      mp_alert: 'text-orange-500',
-      mp_action: 'text-orange-400',
-      qbi_alert: 'text-red-400',
-      strategy_adjusted: 'text-cyan-400',
-      maintenance_request: 'text-yellow-400',
-      maintenance_approved: 'text-emerald-400',
-      budget_alert: 'text-red-500',
-      insurance_check: 'text-violet-400',
-      ad_placement: 'text-yellow-300',
-      market_data: 'text-green-400',
-      system: 'text-gray-400',
+    const STATUS_COLORS = {
+      occupied:    { bg: 'bg-green-100', text: 'text-green-700', border: 'border-l-green-500' },
+      vacant:      { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-l-amber-500' },
+      cleaning:    { bg: 'bg-blue-100',  text: 'text-blue-700',  border: 'border-l-blue-500' },
+      maintenance: { bg: 'bg-red-100',   text: 'text-red-700',   border: 'border-l-red-500' },
     };
 
-    // ================================================================
+    const AGENT_SLOTS = [
+      { role: 'tax',       name: 'Tallyfor AI',      icon: '&#128200;', color: 'perch',  keywords: ['tax','finance','tallyfor','accounting'] },
+      { role: 'cleaning',  name: 'CleanCo Austin',   icon: '&#10024;',  color: 'tally',  keywords: ['clean','turnover','housekeep','maid'] },
+      { role: 'payment',   name: 'PayCollect AI',    icon: '&#128179;', color: 'coral',  keywords: ['payment','collect','payout','invoice','billing'] },
+      { role: 'tours',     name: 'LocalXP',          icon: '&#127758;', color: 'amber',  keywords: ['tour','experience','activity','concierge','local'] },
+      { role: 'insurance', name: 'InsureStay',       icon: '&#128737;', color: 'sand',   keywords: ['insur','liability','coverage','policy','claim'] },
+      { role: 'ads',       name: 'ZeroClick',        icon: '&#9889;',   color: 'tally',  keywords: ['zeroclick','ad','advertis','promote','marketing'] },
+      { role: 'scraping',  name: 'Apify',            icon: '&#128269;', color: 'perch',  keywords: ['apify','scrape','crawl','web data','extract'] },
+      { role: 'pricing',   name: 'RateGenius',       icon: '&#128178;', color: 'coral',  keywords: ['pric','revenue manage','dynamic','rate','yield'] },
+    ];
+
+    const TYPE_COLORS = {
+      tax: 'text-perch-400', cleaning: 'text-tally-400', payment: 'text-coral-400',
+      tours: 'text-amber-400', insurance: 'text-violet-400', ads: 'text-yellow-400',
+      scraping: 'text-green-400', pricing: 'text-pink-400', booking: 'text-blue-400',
+      reasoning: 'text-yellow-400', wallet: 'text-emerald-300', system: 'text-sand-500',
+      alert: 'text-orange-400', strategy: 'text-cyan-400',
+    };
+
+    // Simulated event templates (idle mode)
+    const SIM_EVENTS = [
+      { type: 'tax', agent: 'Tallyfor AI', msgs: [
+        'Classified $1,350 cleaning expense as deductible for {prop}',
+        'QBI analysis updated — $4,200 potential savings this quarter',
+        'Material participation: {prop} at {mp}/750 hours',
+        'Depreciation schedule updated for {prop} — ${depr} annual',
+      ]},
+      { type: 'cleaning', agent: 'CleanCo Austin', msgs: [
+        'Turnover completed for {prop} — ready for next guest',
+        'Deep clean scheduled for {prop} on Mar 8, 2pm',
+        'Quality inspection: {prop} scored 98/100',
+      ]},
+      { type: 'payment', agent: 'PayCollect AI', msgs: [
+        'Processed $1,247 guest payment for {prop}',
+        'Airbnb payout received: $892 for {prop}',
+        'VRBO payout pending: $1,105 for {prop}',
+      ]},
+      { type: 'tours', agent: 'LocalXP', msgs: [
+        'Guest booked Sunset Kayak Tour — $45 commission',
+        '3 experiences recommended to {prop} guest',
+        'SXSW package available: Austin Music Crawl $65',
+      ]},
+      { type: 'insurance', agent: 'InsureStay', msgs: [
+        'Liability coverage verified for {prop} — $1M policy active',
+        'Annual STR policy renewal: {prop} — $1,850/yr',
+      ]},
+      { type: 'ads', agent: 'ZeroClick', msgs: [
+        'AI ad placement: {prop} listing enriched with local dining context',
+        'Reasoning-time ad matched: "best Austin STR" — 3.2x CTR lift',
+      ]},
+      { type: 'scraping', agent: 'Apify', msgs: [
+        'Scraped 847 competitor listings — {prop} priced 8% below median',
+        'Market data updated: Austin STR occupancy trending up 3.1%',
+      ]},
+      { type: 'pricing', agent: 'RateGenius', msgs: [
+        'Dynamic rate adjustment: {prop} $225 → $289 for SXSW week',
+        'Weekend premium applied: {prop} +18% for Fri-Sun',
+      ]},
+    ];
+
+    // ========================================================================
+    // HELPERS
+    // ========================================================================
+
+    function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+    function fmtD(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+    // ========================================================================
+    // DATA LOADING (real APIs)
+    // ========================================================================
+
+    async function loadBuyerData() {
+      try {
+        const [pRes, aRes] = await Promise.all([
+          fetch('/api/buyer/purchases').catch(() => null),
+          fetch('/api/buyer/agents').catch(() => null),
+        ]);
+        if (pRes?.ok) buyerPurchases = (await pRes.json()).purchases || [];
+        if (aRes?.ok) buyerAgents = (await aRes.json()).agents || [];
+      } catch {}
+      renderAgents();
+      renderMarketplace();
+    }
+
+    async function loadCommunityAgents() {
+      try {
+        const r = await fetch('/api/agents/submitted');
+        if (r.ok) communityAgents = (await r.json()).agents || [];
+      } catch {}
+      renderAgents();
+      renderMarketplace();
+    }
+
+    async function loadTransactions() {
+      try {
+        const r = await fetch('/api/nevermined/transactions');
+        if (r.ok) sellerTxns = ((await r.json()).transactions || []).slice(0, 10);
+      } catch {}
+    }
+
+    // ========================================================================
     // RENDERING
-    // ================================================================
+    // ========================================================================
 
-    function refreshSidebar() {
-      const tb1 = computeTrialBalance("ent-01");
-      const tb2 = computeTrialBalance("ent-02");
-      const tax = calcTaxProjection({ "ent-01": tb1, "ent-02": tb2 });
+    function refreshFinancials() {
+      const tb1 = computeTrialBalance('ent-01');
+      const tb2 = computeTrialBalance('ent-02');
+      const tax = calcTaxProjection({ 'ent-01': tb1, 'ent-02': tb2 });
 
-      // Entities
+      // Entity cards
       document.getElementById('ent1-rev').textContent = fmt(tb1.totalRevenue);
       document.getElementById('ent1-exp').textContent = fmt(tb1.totalExpenses);
       document.getElementById('ent1-net').textContent = fmt(tb1.netIncome);
@@ -365,13 +490,14 @@
       document.getElementById('ent2-exp').textContent = fmt(tb2.totalExpenses);
       document.getElementById('ent2-net').textContent = fmt(tb2.netIncome);
 
-      // Wallet
-      document.getElementById('wallet-display').textContent = fmtD(wallet);
-
-      // AGI in header
-      const agiEl = document.getElementById('agi-display');
-      agiEl.textContent = fmt(tax.totalAgi);
-      agiEl.className = tax.totalAgi > 185000 ? 'text-orange-400 font-bold' : 'text-white';
+      // Stats bar
+      const totalRev = properties.reduce((s,p) => s + p.ytdRevenue, 0);
+      const avgOcc = Math.round(properties.reduce((s,p) => s + p.occupancy, 0) / properties.length);
+      document.getElementById('stat-revenue').textContent = fmt(Math.round(totalRev / 3));
+      document.getElementById('stat-wallet').textContent = fmtD(wallet);
+      document.getElementById('stat-occupancy').textContent = avgOcc + '%';
+      document.getElementById('stat-tax').textContent = fmt(Math.round(tax.qbiTaxImpact + properties.reduce((s,p) => s + (p.mpHours >= 750 ? p.annualDepr * 0.24 : 0), 0)));
+      document.getElementById('stat-agents').textContent = getConnectedAgentCount();
 
       // QBI gauge
       const pct = Math.min(100, (tax.totalAgi / QBI_END) * 100);
@@ -381,142 +507,268 @@
       document.getElementById('qbi-tax').textContent = fmt(tax.estimatedTax);
       document.getElementById('qbi-rate').textContent = (tax.effectiveRate * 100).toFixed(1) + '%';
 
-      // Properties + MP bars
-      const mpContainer = document.getElementById('properties-mp');
+      // MP bars
+      const mpContainer = document.getElementById('mp-bars');
       mpContainer.innerHTML = properties.map(p => {
         const pct = Math.min(100, (p.mpHours / 750) * 100);
         const alert = p.mpHours >= 700 && p.mpHours < 750;
         const met = p.mpHours >= 750;
-        const entLabel = p.entityId === 'ent-01' ? 'S-Corp' : 'Sched E';
-        const barColor = alert ? 'bg-orange-500' : met ? 'bg-emerald-500' : 'bg-teal-600';
-        const numColor = alert ? 'text-orange-400 font-bold' : met ? 'text-emerald-400' : 'text-gray-500';
+        const barColor = alert ? 'bg-orange-500' : met ? 'bg-emerald-500' : 'bg-perch-400';
+        const numColor = alert ? 'text-orange-600 font-bold' : met ? 'text-emerald-600 font-bold' : 'text-sand-500';
         return `
-          <div class="bg-gray-900 rounded-lg p-2.5 border border-gray-800">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-semibold text-white truncate">${p.name}</span>
-              <span class="text-xs text-gray-500 flex-shrink-0 ml-1">$${p.rate}/nt</span>
-            </div>
-            <div class="flex justify-between text-xs mb-0.5">
-              <span class="text-gray-500">${entLabel}</span>
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-sand-600 font-medium">${p.name}</span>
               <span class="${numColor}">${Math.round(p.mpHours)}/750</span>
             </div>
-            <div class="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+            <div class="h-2 bg-sand-200 rounded-full overflow-hidden">
               <div class="h-full rounded-full transition-all duration-1000 ${barColor}" style="width: ${pct}%"></div>
             </div>
           </div>`;
       }).join('');
     }
 
-    function renderAgentsSidebar() {
-      const container = document.getElementById('sidebar-agents');
-      container.innerHTML = AGENT_DEFS.map(a => `
-        <div class="bg-gray-900 rounded-lg p-2 border border-gray-800 flex items-center gap-2">
-          <span class="text-sm">${a.icon}</span>
-          <div class="flex-1 min-w-0">
-            <div class="text-xs font-semibold text-white truncate">${a.name}</div>
-            <div class="text-xs text-gray-600 truncate">${a.desc}</div>
-          </div>
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
-        </div>
-      `).join('');
+    function renderProperties() {
+      const grid = document.getElementById('properties-grid');
+      grid.innerHTML = properties.map(p => {
+        const sim = PROP_SIM[p.id] || { status: 'vacant', guest: null, next: 'TBD' };
+        const sc = STATUS_COLORS[sim.status];
+        const entLabel = p.entityId === 'ent-01' ? 'S-Corp' : 'Sched E';
+        return `
+          <div class="bg-white rounded-xl border border-sand-200 border-l-4 ${sc.border} p-4 hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between mb-2">
+              <h3 class="font-semibold text-sand-900 text-sm leading-tight">${p.name}</h3>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium ${sc.bg} ${sc.text} capitalize">${sim.status}</span>
+            </div>
+            <p class="text-xs text-sand-400 mb-1">${p.addr}</p>
+            <p class="text-xs text-sand-400 mb-3">${entLabel} · $${p.rate}/night</p>
+            <div class="flex items-center justify-between text-xs mb-2">
+              <span class="text-sand-500">Occupancy</span>
+              <span class="font-medium text-sand-700">${p.occupancy}%</span>
+            </div>
+            <div class="w-full bg-sand-200 rounded-full h-1.5 mb-3">
+              <div class="h-1.5 rounded-full ${sim.status === 'occupied' ? 'bg-green-500' : 'bg-sand-400'}" style="width:${p.occupancy}%"></div>
+            </div>
+            <div class="text-xs text-sand-500 space-y-1">
+              <div class="flex justify-between"><span>YTD Revenue</span><span class="font-medium text-sand-700">${fmt(p.ytdRevenue)}</span></div>
+              <div class="flex justify-between"><span>MP Hours</span><span class="font-medium ${p.mpHours >= 700 ? 'text-orange-600' : 'text-sand-700'}">${p.mpHours}/750</span></div>
+              ${sim.guest ? `<div class="text-green-600">&#128100; ${sim.guest}${sim.nightsLeft ? ` (${sim.nightsLeft} nights left)` : ''}</div>` : ''}
+              ${sim.next ? `<div class="text-sand-400">Next: ${sim.next}</div>` : ''}
+            </div>
+          </div>`;
+      }).join('');
     }
 
-    function addEvent(type, agent, property, msg) {
-      events.push({ type, agent, property, msg, ts: new Date() });
-      renderLog();
+    function matchAgentToRole(agent) {
+      const text = `${agent.name||''} ${agent.description||''} ${(agent.tags||[]).join(' ')} ${(agent.services||[]).map(s=>s.path||s.description||'').join(' ')}`.toLowerCase();
+      for (const slot of AGENT_SLOTS) {
+        if (slot.keywords.some(k => text.includes(k))) return slot.role;
+      }
+      return 'other';
     }
 
-    function renderLog() {
-      const log = document.getElementById('reasoning-log');
-      const empty = document.getElementById('empty-state');
-      if (empty) empty.remove();
+    function getConnectedAgentCount() {
+      let count = 1;
+      const allExternal = [...buyerAgents, ...communityAgents.filter(a => a.status === 'purchased')];
+      const seen = new Set();
+      for (const a of allExternal) {
+        const id = a.agentId || a.id;
+        if (!seen.has(id)) { seen.add(id); count++; }
+      }
+      return Math.max(count, 8); // At least our 8 built-in agents
+    }
 
-      document.getElementById('event-count').textContent = events.length + ' events';
+    function renderAgents() {
+      const panel = document.getElementById('agents-panel');
+      const allExternal = [...buyerAgents, ...communityAgents.filter(a => a.status === 'purchased')];
+      const matched = {};
+      for (const a of allExternal) {
+        const role = matchAgentToRole(a);
+        if (role !== 'other' && !matched[role]) matched[role] = a;
+      }
+      const matchedIds = new Set(Object.values(matched).map(a => a.agentId || a.id));
+      const extras = allExternal.filter(a => !matchedIds.has(a.agentId || a.id));
 
-      // Render last event (append)
-      const evt = events[events.length - 1];
-      const icon = EVENT_ICONS[evt.type] || EVENT_ICONS.system;
-      const color = EVENT_COLORS[evt.type] || 'text-gray-400';
-      const time = evt.ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const cards = AGENT_SLOTS.map(slot => {
+        const real = matched[slot.role];
+        const isTax = slot.role === 'tax';
+        const isConnected = true; // All slots connected in demo
+        const rawName = real && !isTax ? real.name : slot.name;
+        const displayName = rawName.replace(/:[a-z_]+:/g, '').trim();
+        const txnCount = isTax ? sellerTxns.length : (real ? buyerPurchases.filter(p => p.agentId === (real.agentId||real.id)).length : 0);
+        const source = isTax ? 'Internal' : (real ? 'Marketplace' : 'Agent Network');
 
-      const div = document.createElement('div');
-      div.className = 'flex items-start gap-2.5 py-2 border-b border-gray-900 border-opacity-50 slide-in';
-      div.innerHTML = `
-        <span class="text-base flex-shrink-0 mt-0.5">${icon}</span>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-xs font-mono text-gray-600">${time}</span>
-            <span class="text-xs bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded">${evt.property}</span>
-            <span class="text-xs text-gray-600">${evt.agent}</span>
-          </div>
-          <p class="text-sm leading-relaxed ${color}">${evt.msg}</p>
+        return `
+          <div class="bg-white rounded-xl border border-sand-200 p-3 agent-active overflow-hidden">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg flex-shrink-0">${slot.icon}</span>
+              <div class="min-w-0 flex-1">
+                <div class="font-semibold text-sm text-sand-900 truncate">${displayName}</div>
+                <div class="text-xs text-sand-400 capitalize">${slot.role}</div>
+              </div>
+              <span class="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" title="Connected"></span>
+            </div>
+            <p class="text-xs text-sand-500 truncate">${isTax && sellerTxns.length > 0 ? (sellerTxns[0].message || 'Tax analysis completed') : source}</p>
+            ${txnCount > 0 ? `<div class="text-xs text-sand-400 mt-0.5">${txnCount} txn${txnCount !== 1 ? 's' : ''}</div>` : ''}
+          </div>`;
+      });
+
+      for (const a of extras.slice(0, 4)) {
+        const cleanName = (a.name||'Agent').replace(/:[a-z_]+:/g, '').trim();
+        const initial = cleanName.replace(/[^a-zA-Z]/g, '')[0] || 'A';
+        cards.push(`
+          <div class="bg-white rounded-xl border border-sand-200 p-4">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-lg bg-perch-100 flex items-center justify-center text-perch-700 text-sm font-bold">${initial}</span>
+                <div>
+                  <div class="font-semibold text-sm text-sand-900">${cleanName}</div>
+                  <div class="text-xs text-sand-400">${(a.description || 'Agent').slice(0, 40)}</div>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Connected</span>
+            </div>
+          </div>`);
+      }
+
+      panel.innerHTML = cards.join('');
+    }
+
+    function renderMarketplace() {
+      document.getElementById('mkt-discovered').textContent = buyerAgents.length;
+      document.getElementById('mkt-community').textContent = communityAgents.length;
+      document.getElementById('mkt-purchases').textContent = buyerPurchases.length;
+    }
+
+    // ========================================================================
+    // Activity Feed
+    // ========================================================================
+
+    function addActivity(item) {
+      activityItems.unshift(item);
+      if (activityItems.length > 60) activityItems.pop();
+      renderFeed();
+    }
+
+    function renderFeed() {
+      const feed = document.getElementById('activity-feed');
+      if (activityItems.length === 0) return;
+      feed.innerHTML = activityItems.map((item, i) => {
+        const time = new Date(item.timestamp).toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12: false });
+        const color = TYPE_COLORS[item.type] || 'text-sand-500';
+        return `<div class="${i === 0 ? 'slide-in' : ''} flex gap-2 py-1 border-b border-sand-800 last:border-0">
+          <span class="text-sand-600 shrink-0">${time}</span>
+          <span class="${color} shrink-0">[${item.agent}]</span>
+          <span class="text-sand-300">${item.message}</span>
+          ${item.source === 'real' ? '<span class="text-perch-500 text-xs ml-auto shrink-0">LIVE</span>' : ''}
         </div>`;
-      log.appendChild(div);
-      log.scrollTop = log.scrollHeight;
+      }).join('');
     }
+
+    function injectRealTransactions() {
+      for (const tx of sellerTxns) {
+        if (!activityItems.find(a => a.id === tx.id)) {
+          activityItems.push({
+            id: tx.id, timestamp: tx.timestamp || new Date().toISOString(),
+            type: 'tax', agent: 'Tallyfor AI',
+            message: tx.message || `${(tx.queryType||'analysis').replace(/_/g,' ')} completed`,
+            source: 'real',
+          });
+        }
+      }
+      for (const p of buyerPurchases) {
+        const pid = 'buy-' + p.id;
+        if (!activityItems.find(a => a.id === pid)) {
+          activityItems.push({
+            id: pid, timestamp: p.timestamp || new Date().toISOString(),
+            type: matchAgentToRole({ name: p.agentName, tags: [] }),
+            agent: p.agentName || 'Agent',
+            message: `Purchased ${p.queryType||'service'} — ${p.satisfactionScore||0}/100 satisfaction`,
+            source: 'real',
+          });
+        }
+      }
+      activityItems.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+      if (activityItems.length > 60) activityItems.length = 60;
+      renderFeed();
+    }
+
+    function generateSimEvent() {
+      if (isRunning) return; // Don't generate random events during demo
+      const group = SIM_EVENTS[Math.floor(Math.random() * SIM_EVENTS.length)];
+      const p = properties[Math.floor(Math.random() * properties.length)];
+      const msg = group.msgs[Math.floor(Math.random() * group.msgs.length)]
+        .replace('{prop}', p.name)
+        .replace('{mp}', p.mpHours)
+        .replace('{depr}', fmt(p.annualDepr));
+      addActivity({
+        id: 'sim-' + Date.now(), timestamp: new Date().toISOString(),
+        type: group.type, agent: group.agent, message: msg, source: 'simulated',
+      });
+    }
+
+    // ========================================================================
+    // DEMO SEQUENCE
+    // ========================================================================
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+    function check() { if (aborted) throw new Error('aborted'); }
 
     function setAgentStatus(status) {
-      const badge = document.getElementById('agent-badge');
-      const dot = document.getElementById('log-dot');
+      const badge = document.getElementById('agent-badge-text');
       const thinking = document.getElementById('thinking-indicator');
       const btn = document.getElementById('demo-btn');
-
       if (status === 'running') {
-        badge.textContent = 'AUTONOMOUS';
-        badge.className = 'text-xs bg-emerald-900 text-emerald-400 px-2 py-0.5 rounded-full font-mono';
-        dot.className = 'w-2 h-2 rounded-full bg-emerald-400 pulse-dot';
+        badge.textContent = 'AUTONOMOUS MODE';
         thinking.classList.add('hidden');
-        btn.textContent = '■ Stop';
-        btn.className = 'px-4 py-2 bg-red-900 hover:bg-red-800 rounded-lg text-sm font-bold transition-all text-red-300';
+        btn.innerHTML = '&#9632; Stop';
+        btn.className = 'px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm font-bold transition-all text-white';
         btn.onclick = stopDemo;
       } else if (status === 'thinking') {
-        badge.textContent = 'THINKING...';
-        badge.className = 'text-xs bg-yellow-900 text-yellow-400 px-2 py-0.5 rounded-full font-mono';
+        badge.textContent = 'AGENT THINKING...';
         thinking.classList.remove('hidden');
       } else if (status === 'acting') {
         badge.textContent = 'EXECUTING';
-        badge.className = 'text-xs bg-cyan-900 text-cyan-400 px-2 py-0.5 rounded-full font-mono';
         thinking.classList.add('hidden');
       } else {
-        badge.textContent = 'READY';
-        badge.className = 'text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full font-mono';
-        dot.className = 'w-2 h-2 rounded-full bg-gray-600';
+        badge.textContent = 'Powered by AI Agents';
         thinking.classList.add('hidden');
-        btn.innerHTML = '&#9654; Start Demo';
-        btn.className = 'px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-bold transition-all';
+        btn.innerHTML = '&#9654; Run Demo';
+        btn.className = 'px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-bold transition-all text-white';
         btn.onclick = startDemo;
       }
     }
 
-    // ================================================================
-    // DEMO SEQUENCE
-    // ================================================================
-
-    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-    function check() { if (aborted) throw new Error('aborted'); }
+    function demoEvent(type, agent, message) {
+      addActivity({
+        id: 'demo-' + Date.now() + Math.random(),
+        timestamp: new Date().toISOString(),
+        type, agent, message, source: 'demo',
+      });
+    }
 
     async function startDemo() {
       if (isRunning) return;
       isRunning = true;
       aborted = false;
-      events = [];
-      document.getElementById('reasoning-log').innerHTML = '';
+
+      // Reset financial state
       wallet = 25000;
-      properties = PROPERTIES.map(p => ({ ...p }));
+      properties = SEED_PROPERTIES.map(p => ({ ...p }));
       ledger = seedLedger();
-      refreshSidebar();
+      activityItems = [];
+      refreshFinancials();
+      renderFeed();
       setAgentStatus('running');
 
       try {
-        // Boot
-        addEvent('system', 'System', 'Portfolio', 'Perch autonomous agent initialized. 8 AI agents connected. Monitoring 5 properties across 2 entities.');
+        demoEvent('system', 'System', 'Perch autonomous agent initialized. 8 AI agents connected. Monitoring 5 properties across 2 entities.');
         await delay(1500); check();
 
-        // Apify market scan
-        addEvent('market_data', 'Apify', 'Portfolio', 'Market scan: 847 competitor listings analyzed. Austin STR occupancy trending up 3.1%. Portfolio priced 8% below median — room for optimization.');
+        demoEvent('scraping', 'Apify', 'Market scan: 847 competitor listings analyzed. Austin STR occupancy trending up 3.1%. Portfolio priced 8% below median.');
         await delay(2000); check();
 
-        // ---- SEQUENCE 1: NEW BOOKING ON SOCO MODERN ----
+        // ---- SEQUENCE 1: NEW BOOKING ----
         const prop = properties[1]; // SoCo Modern
         const nights = 4, guest = 'Emily Rodriguez';
         const rate = Math.round(prop.rate * 0.95 * 100) / 100;
@@ -524,208 +776,162 @@
         const fee = Math.round(total * 0.03 * 100) / 100;
         const net = Math.round((total - fee) * 100) / 100;
 
-        addEvent('booking_received', 'Airbnb', prop.name, `New booking request: ${guest}, ${nights} nights at $${rate}/night. Total ${fmtD(total)}, net after 3% platform fee: ${fmtD(net)}.`);
+        demoEvent('booking', 'Airbnb', `New booking request: ${guest}, ${nights} nights at $${rate}/night. Total ${fmtD(total)}, net after 3% fee: ${fmtD(net)}.`);
         await delay(2000); check();
 
-        // RateGenius confirms pricing
-        addEvent('agent_reasoning', 'RateGenius', prop.name, `Rate check: $${rate}/night is within optimal band. SXSW weekend ahead — could get $289/night, but this is a weekday block. Approving current rate.`);
+        demoEvent('pricing', 'RateGenius', `Rate check: $${rate}/night within optimal band. SXSW ahead but this is weekday — approving current rate.`);
         await delay(1800); check();
 
-        // Tallyfor AI evaluates tax impact
         setAgentStatus('thinking');
-        addEvent('agent_reasoning', 'Tallyfor AI', prop.name, 'Evaluating tax impact of booking...');
-        await delay(2000); check();
-
         const tb1 = computeTrialBalance('ent-01');
         const tb2 = computeTrialBalance('ent-02');
         const preTax = calcTaxProjection({ 'ent-01': tb1, 'ent-02': tb2 });
 
-        addEvent('agent_reasoning', 'Tallyfor AI', prop.name,
-          `Constraint check: Net per night ${fmtD((net - prop.cleaning) / nights)} — above $50 minimum. ` +
+        demoEvent('reasoning', 'Tallyfor AI',
+          `Tax impact analysis: Net/night ${fmtD((net - prop.cleaning) / nights)} above $50 min. ` +
           `Current AGI: ${fmt(preTax.totalAgi)}, distance to QBI phase-out: ${fmt(preTax.distToPhaseout)}. ` +
-          `This booking adds ~${fmtD(net)} to S-Corp revenue. AGI stays below $191,950 threshold. ` +
-          `QBI deduction of ${fmt(preTax.qbiDeduction)} (20% of rental net) preserved. RECOMMENDATION: Accept.`);
+          `Booking adds ${fmtD(net)} to S-Corp. QBI deduction of ${fmt(preTax.qbiDeduction)} preserved. ACCEPT.`);
         await delay(2500); check();
 
-        // InsureStay verifies
-        addEvent('insurance_check', 'InsureStay', prop.name, `Liability coverage verified: $1M policy active for ${prop.name}. Guest damage protection: $50K. Clear to accept.`);
+        demoEvent('insurance', 'InsureStay', `Liability verified: $1M policy active for ${prop.name}. Guest damage protection: $50K. Clear.`);
         await delay(1200); check();
 
-        // Accept booking
         setAgentStatus('acting');
-        addEvent('booking_accepted', 'System', prop.name, `BOOKING ACCEPTED. Revenue ${fmtD(net)} recorded. Confidence: 94%.`);
+        demoEvent('booking', 'System', `BOOKING ACCEPTED — ${guest}, ${nights} nights. Revenue ${fmtD(net)}.`);
         await delay(1000); check();
 
-        // PayCollect processes payment
         wallet += net;
-        addEvent('wallet_income', 'PayCollect AI', 'Wallet', `+${fmtD(net)} booking revenue received from Airbnb → Balance: ${fmtD(wallet)}`);
-        refreshSidebar();
+        demoEvent('wallet', 'PayCollect AI', `+${fmtD(net)} booking revenue → Wallet: ${fmtD(wallet)}`);
+        refreshFinancials();
         await delay(1200); check();
 
-        // Tallyfor records in trial balance
         ledger.push(
-          { entityId: 'ent-01', accountCode: '1100', accountType: 'asset', debit: net, credit: 0, description: `Booking: ${guest}` },
-          { entityId: 'ent-01', accountCode: '4100', accountType: 'revenue', debit: 0, credit: net, description: `Booking: ${guest}` },
-          { entityId: 'ent-01', accountCode: '5200', accountType: 'expense', debit: fee, credit: 0, description: `Platform fee: ${guest}` },
-          { entityId: 'ent-01', accountCode: '1100', accountType: 'asset', debit: 0, credit: fee, description: `Platform fee: ${guest}` },
+          { entityId: 'ent-01', accountCode: '1100', accountType: 'asset', debit: net, credit: 0 },
+          { entityId: 'ent-01', accountCode: '4100', accountType: 'revenue', debit: 0, credit: net },
+          { entityId: 'ent-01', accountCode: '5200', accountType: 'expense', debit: fee, credit: 0 },
+          { entityId: 'ent-01', accountCode: '1100', accountType: 'asset', debit: 0, credit: fee },
         );
-        refreshSidebar();
-        addEvent('revenue_recorded', 'Tallyfor AI', prop.name, `Trial balance updated: Perch Properties LLC — Debit Cash ${fmtD(net)}, Credit Rental Income ${fmtD(net)}, Platform Fee ${fmtD(fee)}. Account 4100.`);
+        refreshFinancials();
+        demoEvent('tax', 'Tallyfor AI', `Trial balance updated: Perch Properties LLC — Debit Cash ${fmtD(net)}, Credit Revenue ${fmtD(net)}, Platform Fee ${fmtD(fee)}.`);
         await delay(1500); check();
 
-        // Tax update
         const postTax = calcTaxProjection({ 'ent-01': computeTrialBalance('ent-01'), 'ent-02': computeTrialBalance('ent-02') });
-        addEvent('tax_updated', 'Tallyfor AI', 'Portfolio', `Tax projection updated. Combined AGI: ${fmt(postTax.totalAgi)}. QBI deduction: ${fmt(postTax.qbiDeduction)} preserved. Estimated federal tax: ${fmt(postTax.estimatedTax)}. Effective rate: ${(postTax.effectiveRate * 100).toFixed(1)}%.`);
-        await delay(2500); check();
-
-        // ZeroClick ad placement
-        addEvent('ad_placement', 'ZeroClick', prop.name, `AI ad placement: "${prop.name}" listing enriched with local dining + SXSW context. Reasoning-time ad matched "best Austin STR" — projected 3.2x CTR lift.`);
+        demoEvent('tax', 'Tallyfor AI', `Tax updated: AGI ${fmt(postTax.totalAgi)}. QBI ${fmt(postTax.qbiDeduction)} preserved. Est. tax: ${fmt(postTax.estimatedTax)} (${(postTax.effectiveRate * 100).toFixed(1)}%).`);
         await delay(2000); check();
 
-        // ---- SEQUENCE 2: CHECKOUT → CLEANING → MP ALERT ----
-        const prop3 = properties[2]; // Zilker Cottage
+        demoEvent('ads', 'ZeroClick', `Ad placement: "${prop.name}" enriched with SXSW + local dining context. Projected 3.2x CTR lift.`);
+        await delay(2000); check();
+
+        // ---- SEQUENCE 2: CHECKOUT + CLEANING + MP ----
+        const prop3 = properties[2]; // Zilker
         const coGuest = 'Marcus Johnson', coNights = 3, coRate = 175;
         const coTotal = coRate * coNights;
         const coFee = Math.round(coTotal * 0.03 * 100) / 100;
         const coNet = Math.round((coTotal - coFee) * 100) / 100;
 
-        addEvent('booking_received', 'System', prop3.name, `Checkout completed: ${coGuest} (${coNights} nights, ${fmtD(coTotal)}). Initiating post-checkout workflow...`);
+        demoEvent('system', 'System', `Checkout: ${coGuest} from ${prop3.name} (${coNights} nights, ${fmtD(coTotal)}). Post-checkout workflow starting...`);
         await delay(2000); check();
 
-        // CleanCo dispatched
         setAgentStatus('acting');
-        addEvent('vendor_dispatched', 'CleanCo Austin', prop3.name, `Cleaning dispatched: CleanCo Austin → today 11:00 AM. Deep clean + restocking. Estimated time: 2.5 hours.`);
+        demoEvent('cleaning', 'CleanCo Austin', `Cleaning dispatched → ${prop3.name}, today 11:00 AM. Deep clean + restock. ETA 2.5 hrs.`);
         await delay(1200); check();
 
-        // Payment authorized
         wallet -= prop3.cleaning;
-        addEvent('payment_authorized', 'PayCollect AI', 'Wallet', `-$${prop3.cleaning}.00 (CleanCo Austin: post-checkout cleaning) → Balance: ${fmtD(wallet)}`);
-        refreshSidebar();
+        demoEvent('payment', 'PayCollect AI', `-$${prop3.cleaning} (CleanCo: post-checkout) → Wallet: ${fmtD(wallet)}`);
+        refreshFinancials();
         await delay(1500); check();
 
-        // Record revenue + cleaning expense
         ledger.push(
-          { entityId: 'ent-02', accountCode: '1100', accountType: 'asset', debit: coNet, credit: 0, description: `Checkout: ${coGuest}` },
-          { entityId: 'ent-02', accountCode: '4100', accountType: 'revenue', debit: 0, credit: coNet, description: `Checkout: ${coGuest}` },
-          { entityId: 'ent-02', accountCode: '5200', accountType: 'expense', debit: coFee, credit: 0, description: `Platform fee: ${coGuest}` },
-          { entityId: 'ent-02', accountCode: '1100', accountType: 'asset', debit: 0, credit: coFee, description: `Platform fee: ${coGuest}` },
-          { entityId: 'ent-02', accountCode: '5100', accountType: 'expense', debit: prop3.cleaning, credit: 0, description: 'Cleaning: CleanCo Austin' },
-          { entityId: 'ent-02', accountCode: '1100', accountType: 'asset', debit: 0, credit: prop3.cleaning, description: 'Cleaning: CleanCo Austin' },
+          { entityId: 'ent-02', accountCode: '1100', accountType: 'asset', debit: coNet, credit: 0 },
+          { entityId: 'ent-02', accountCode: '4100', accountType: 'revenue', debit: 0, credit: coNet },
+          { entityId: 'ent-02', accountCode: '5200', accountType: 'expense', debit: coFee, credit: 0 },
+          { entityId: 'ent-02', accountCode: '1100', accountType: 'asset', debit: 0, credit: coFee },
+          { entityId: 'ent-02', accountCode: '5100', accountType: 'expense', debit: prop3.cleaning, credit: 0 },
+          { entityId: 'ent-02', accountCode: '1100', accountType: 'asset', debit: 0, credit: prop3.cleaning },
         );
-        refreshSidebar();
-        addEvent('revenue_recorded', 'Tallyfor AI', prop3.name, `Revenue ${fmtD(coNet)} recorded to Alex Morgan (Schedule E). Account 4100: Rental Income.`);
-        await delay(1000); check();
-        addEvent('expense_recorded', 'Tallyfor AI', prop3.name, `Cleaning expense $${prop3.cleaning} recorded. Account 5100. Platform fee ${fmtD(coFee)} recorded. Account 5200.`);
+        wallet += coNet;
+        refreshFinancials();
+        demoEvent('tax', 'Tallyfor AI', `Revenue ${fmtD(coNet)} recorded → Schedule E. Cleaning $${prop3.cleaning} → Acct 5100. Fee ${fmtD(coFee)} → Acct 5200.`);
+        await delay(1500); check();
+
+        demoEvent('wallet', 'PayCollect AI', `+${fmtD(coNet)} checkout payout → Wallet: ${fmtD(wallet)}`);
         await delay(2000); check();
 
-        // Wallet income from checkout
-        wallet += coNet;
-        addEvent('wallet_income', 'PayCollect AI', 'Wallet', `+${fmtD(coNet)} checkout payout received → Balance: ${fmtD(wallet)}`);
-        refreshSidebar();
-        await delay(1500); check();
-
-        // Tax update
-        addEvent('tax_updated', 'Tallyfor AI', 'Portfolio', 'Tax projection recalculating with new revenue...');
-        await delay(1500); check();
-        const midTax = calcTaxProjection({ 'ent-01': computeTrialBalance('ent-01'), 'ent-02': computeTrialBalance('ent-02') });
-        addEvent('tax_updated', 'Tallyfor AI', 'Portfolio', `Updated: Combined AGI ${fmt(midTax.totalAgi)}. QBI deduction preserving ~${fmt(midTax.qbiDeduction)} in deductions. Estimated federal tax: ${fmt(midTax.estimatedTax)}.`);
-        await delay(2500); check();
-
-        // ---- MATERIAL PARTICIPATION ALERT ----
+        // ---- MP ALERT ----
         const mpSavings = Math.round(prop3.annualDepr * 0.24);
-        addEvent('mp_alert', 'Tallyfor AI', prop3.name,
-          `&#128293; ALERT: Zilker Cottage at 710/750 material participation hours. Only 40 hours remaining! ` +
-          `Crossing the 750-hour threshold converts passive losses to active — saving approximately $${mpSavings.toLocaleString()} in tax (depreciation ${fmt(prop3.annualDepr)} × 24% marginal rate).`);
+        demoEvent('alert', 'Tallyfor AI',
+          `🔥 MP ALERT: ${prop3.name} at 710/750 hours! 40 hours remaining. ` +
+          `Threshold converts passive→active losses: ~$${mpSavings.toLocaleString()} annual tax savings (${fmt(prop3.annualDepr)} depreciation × 24%).`);
         await delay(2500); check();
 
-        // Agent reasons about MP strategy
         setAgentStatus('thinking');
-        addEvent('agent_reasoning', 'Tallyfor AI', prop3.name, 'Analyzing material participation strategy. Evaluating owner activities to reach 750-hour threshold...');
+        demoEvent('reasoning', 'Tallyfor AI', 'Analyzing material participation strategy to reach 750-hour threshold...');
         await delay(2000); check();
 
         setAgentStatus('acting');
-        addEvent('mp_action', 'Tallyfor AI', prop3.name,
-          `Recommended activities to reach 750 hours: (1) Schedule 3 property inspections this month (12-18 hrs), ` +
-          `(2) Handle guest communications directly for Zilker bookings (8-12 hrs), ` +
-          `(3) Supervise upcoming maintenance visits (6-10 hrs). Total: ~30-40 hrs. Threshold achievable by month end.`);
+        demoEvent('tax', 'Tallyfor AI',
+          `MP plan: (1) 3 property inspections this month (12-18 hrs), (2) handle guest comms directly (8-12 hrs), (3) supervise maintenance (6-10 hrs). Total ~30-40 hrs. Achievable by month end.`);
         await delay(1500); check();
 
-        // Update MP hours
         properties = properties.map(p => p.id === 'p3' ? { ...p, mpHours: 750 } : p);
-        refreshSidebar();
-        addEvent('mp_action', 'Tallyfor AI', prop3.name,
-          `Material participation hours updated: 710 → 750. Threshold MET. ` +
-          `Passive losses now deductible as active. Est. annual savings: ~$${mpSavings.toLocaleString()}.`);
+        refreshFinancials();
+        renderProperties();
+        demoEvent('tax', 'Tallyfor AI', `✅ MP hours updated: 710 → 750. THRESHOLD MET. Passive losses now active. Savings: ~$${mpSavings.toLocaleString()}/yr.`);
         await delay(3000); check();
 
-        // ---- SEQUENCE 3: QBI STRATEGY ----
+        // ---- QBI STRATEGY ----
         setAgentStatus('thinking');
         const qbiTax = calcTaxProjection({ 'ent-01': computeTrialBalance('ent-01'), 'ent-02': computeTrialBalance('ent-02') });
-        addEvent('qbi_alert', 'Tallyfor AI', 'Portfolio',
-          `&#9889; QBI ANALYSIS: Current AGI ${fmt(qbiTax.totalAgi)} trending toward $191,950 phase-out. ` +
-          `Distance to threshold: ${fmt(qbiTax.distToPhaseout)}. At current booking pace, we'll cross within weeks. ` +
-          `Current QBI deduction: ${fmt(qbiTax.qbiDeduction)} — worth ~$${Math.round(qbiTax.qbiTaxImpact).toLocaleString()} in tax savings.`);
+        demoEvent('alert', 'Tallyfor AI',
+          `⚡ QBI: AGI ${fmt(qbiTax.totalAgi)} → $191,950 phase-out. Distance: ${fmt(qbiTax.distToPhaseout)}. ` +
+          `Current QBI deduction: ${fmt(qbiTax.qbiDeduction)} worth ~$${Math.round(qbiTax.qbiTaxImpact).toLocaleString()} in savings.`);
         await delay(2500); check();
 
-        // Apify provides market context
-        addEvent('market_data', 'Apify', 'Portfolio', 'Market context: Austin STR demand rising 4.2% week-over-week (SXSW effect). Competitor avg rate: $245/night. Reducing rates for QBI management is viable — demand will absorb lower prices.');
+        demoEvent('scraping', 'Apify', 'Market context: Austin demand up 4.2% WoW (SXSW). Competitor avg $245/nt. Moderate rate reduction viable.');
         await delay(2000); check();
 
-        // RateGenius adjusts pricing
-        addEvent('strategy_adjusted', 'RateGenius', 'East Side Bungalow',
-          `QBI-aware pricing: Reducing East Side Bungalow from $189 → $169/night for remaining Q1. ` +
-          `Trade-off: ~$600 less revenue vs preserving ~$${Math.round(qbiTax.qbiTaxImpact).toLocaleString()} QBI tax benefit. ` +
-          `Net advantage: $${Math.round(qbiTax.qbiTaxImpact - 600).toLocaleString()}.`);
+        demoEvent('strategy', 'RateGenius',
+          `QBI-aware pricing: East Side Bungalow $189 → $169/nt for Q1. Trade-off: ~$600 less revenue vs ~$${Math.round(qbiTax.qbiTaxImpact).toLocaleString()} QBI benefit. Net advantage: $${Math.round(qbiTax.qbiTaxImpact - 600).toLocaleString()}.`);
         await delay(1500); check();
 
-        addEvent('strategy_adjusted', 'Tallyfor AI', 'Portfolio',
-          `Pricing strategy activated. Coordinating with RateGenius to manage AGI below $191,950 phase-out. ` +
-          `Estimated annual tax savings from QBI preservation: $${Math.round(qbiTax.qbiTaxImpact).toLocaleString()}.`);
+        demoEvent('strategy', 'Tallyfor AI', `Pricing strategy activated. Coordinating with RateGenius to keep AGI below $191,950.`);
         await delay(3000); check();
 
-        // ---- SEQUENCE 4: MAINTENANCE REQUEST ----
-        const prop4 = properties[3]; // Domain Studio
-        addEvent('maintenance_request', 'System', prop4.name, 'Maintenance request: HVAC not cooling properly. Guest reported issue. Estimated repair: $350. Vendor: FixIt Pro Austin.');
+        // ---- MAINTENANCE ----
+        const prop4 = properties[3];
+        demoEvent('system', 'System', `Maintenance request: ${prop4.name} — HVAC not cooling. Guest reported. Est. repair: $350.`);
         await delay(2000); check();
 
-        // InsureStay checks coverage
-        addEvent('insurance_check', 'InsureStay', prop4.name, 'Coverage check: HVAC repair is covered maintenance, not a claim event. No deductible applies. Proceeding with vendor dispatch.');
+        demoEvent('insurance', 'InsureStay', 'Coverage check: HVAC is routine maintenance, not a claim. No deductible. Proceed.');
         await delay(1500); check();
 
-        // Tallyfor auto-approves
-        addEvent('agent_reasoning', 'Tallyfor AI', prop4.name, `Budget check: $350 is under $500 auto-approve threshold. Wallet balance ${fmtD(wallet)} is sufficient. Account 6100: Repairs & Maintenance. Auto-approving.`);
+        demoEvent('reasoning', 'Tallyfor AI', `Budget check: $350 < $500 auto-approve threshold. Wallet ${fmtD(wallet)} sufficient. Auto-approving.`);
         await delay(1500); check();
 
         wallet -= 350;
         ledger.push(
-          { entityId: 'ent-02', accountCode: '6100', accountType: 'expense', debit: 350, credit: 0, description: 'HVAC repair: FixIt Pro' },
-          { entityId: 'ent-02', accountCode: '1100', accountType: 'asset', debit: 0, credit: 350, description: 'HVAC repair: FixIt Pro' },
+          { entityId: 'ent-02', accountCode: '6100', accountType: 'expense', debit: 350, credit: 0 },
+          { entityId: 'ent-02', accountCode: '1100', accountType: 'asset', debit: 0, credit: 350 },
         );
-        refreshSidebar();
-        addEvent('maintenance_approved', 'PayCollect AI', prop4.name, 'Payment $350 authorized to FixIt Pro Austin. Technician ETA: 2:00 PM today.');
+        refreshFinancials();
+        demoEvent('payment', 'PayCollect AI', `-$350 (FixIt Pro: HVAC) → Wallet: ${fmtD(wallet)}`);
         await delay(1000); check();
-        addEvent('payment_authorized', 'PayCollect AI', 'Wallet', `-$350.00 (FixIt Pro: HVAC repair) → Balance: ${fmtD(wallet)}`);
-        await delay(1000); check();
-        addEvent('expense_recorded', 'Tallyfor AI', prop4.name, 'Repair expense $350 recorded. Account 6100: Repairs & Maintenance. Schedule E entity.');
-        await delay(2000); check();
+        demoEvent('tax', 'Tallyfor AI', 'Repair $350 recorded → Acct 6100: Repairs & Maintenance. Schedule E.');
+        await delay(1500); check();
 
-        // LocalXP guest recovery
-        addEvent('system', 'LocalXP', prop4.name, `Guest experience recovery: Complimentary Sunset Kayak Tour ($45) offered to ${prop4.name} guest during HVAC repair. Commission: $6.75.`);
+        demoEvent('tours', 'LocalXP', `Guest recovery: complimentary Sunset Kayak Tour ($45) offered during repair. Commission: $6.75.`);
         await delay(2000); check();
 
         // ---- SUMMARY ----
         const finalTax = calcTaxProjection({ 'ent-01': computeTrialBalance('ent-01'), 'ent-02': computeTrialBalance('ent-02') });
         const totalSaved = mpSavings + Math.round(finalTax.qbiTaxImpact);
-        addEvent('system', 'System', 'Portfolio',
-          `Session complete. ` +
-          `1 booking accepted (${fmtD(net)}), 1 checkout processed, 3 vendor payments ($${prop3.cleaning + 350 + 45}), ` +
-          `MP threshold achieved for Zilker Cottage, QBI preservation strategy activated. ` +
-          `8 agents coordinated autonomously. ` +
-          `Estimated annual tax savings from autonomous decisions: ${fmt(totalSaved)}.`);
+        demoEvent('system', 'System',
+          `✅ Session complete. 1 booking (${fmtD(net)}), 1 checkout, 3 vendor payments ($${prop3.cleaning + 350 + 45}), ` +
+          `MP threshold achieved, QBI strategy activated. 8 agents coordinated. Tax savings: ~${fmt(totalSaved)}/yr.`);
 
       } catch (e) {
         if (e.message !== 'aborted') {
-          addEvent('system', 'System', 'Portfolio', `Error: ${e.message}. The agent encountered an issue but the portfolio is safe.`);
+          demoEvent('system', 'System', `Error: ${e.message}. Portfolio safe.`);
         }
       }
 
@@ -733,18 +939,32 @@
       setAgentStatus('idle');
     }
 
-    function stopDemo() {
-      aborted = true;
-    }
+    function stopDemo() { aborted = true; }
 
-    // ================================================================
+    // ========================================================================
     // BOOT
-    // ================================================================
+    // ========================================================================
 
-    function init() {
-      ledger = seedLedger();
-      refreshSidebar();
-      renderAgentsSidebar();
+    async function init() {
+      refreshFinancials();
+      renderProperties();
+      renderAgents();
+
+      addActivity({ id: 'boot', timestamp: new Date().toISOString(), type: 'system', agent: 'System', message: 'Perch STR dashboard initialized — 8 AI agents connected', source: 'simulated' });
+
+      await Promise.all([loadBuyerData(), loadCommunityAgents(), loadTransactions()]);
+      injectRealTransactions();
+
+      setTimeout(() => {
+        addActivity({ id: 'connected', timestamp: new Date().toISOString(), type: 'tax', agent: 'Tallyfor AI', message: 'Connected — monitoring 5 properties for tax optimization', source: 'simulated' });
+      }, 1500);
+
+      setTimeout(() => generateSimEvent(), 3000);
+      setInterval(generateSimEvent, 8000);
+
+      setInterval(async () => { await loadTransactions(); injectRealTransactions(); refreshFinancials(); }, 10000);
+      setInterval(loadBuyerData, 15000);
+      setInterval(loadCommunityAgents, 10000);
     }
 
     init();
