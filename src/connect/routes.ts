@@ -125,9 +125,11 @@ export function toDiscoveredAgent(submitted: SubmittedAgent): DiscoveredAgent {
 type PurchaseTrigger = (agent: DiscoveredAgent) => Promise<{ success: boolean; responseTimeMs: number; satisfactionScore: number; error?: string }>
 
 let onNewAgent: PurchaseTrigger | null = null
+let onTestBuy: PurchaseTrigger | null = null
 
 export function setPurchaseTrigger(trigger: PurchaseTrigger) {
   onNewAgent = trigger
+  onTestBuy = trigger
 }
 
 // ============================================================================
@@ -185,6 +187,47 @@ export function createConnectRouter(): Router {
       agent,
       autoPurchase: !!onNewAgent,
     })
+  })
+
+  // POST /test-buy — test buy from an agent without submitting it
+  router.post('/test-buy', async (req: Request, res: Response) => {
+    const { buyType, planId, agentId, url, name } = req.body
+
+    if (!onTestBuy) {
+      res.status(503).json({ error: 'Buyer not available — set BUYER_API_KEY to enable' })
+      return
+    }
+
+    if (buyType === 'nevermined') {
+      if (!planId?.trim() || !agentId?.trim()) {
+        res.status(400).json({ error: 'planId and agentId are required for Nevermined test buy' })
+        return
+      }
+    } else {
+      if (!url?.trim()) {
+        res.status(400).json({ error: 'url is required for Direct test buy' })
+        return
+      }
+    }
+
+    const agent: DiscoveredAgent = {
+      agentId: agentId?.trim() || url?.trim(),
+      planId: planId?.trim() || '',
+      name: name?.trim() || (buyType === 'direct' ? 'Direct Agent' : 'Nevermined Agent'),
+      description: '',
+      tags: ['test'],
+      endpoint: url?.trim() || '',
+      creditsPerPlan: 100,
+      buyType: buyType === 'direct' ? 'direct' : 'nevermined',
+      serviceCatalog: [],
+    }
+
+    try {
+      const result = await onTestBuy(agent)
+      res.json({ success: result.success, responseTimeMs: result.responseTimeMs, satisfactionScore: result.satisfactionScore, error: result.error })
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message })
+    }
   })
 
   // GET /submitted — list all submitted agents

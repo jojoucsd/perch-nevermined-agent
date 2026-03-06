@@ -251,6 +251,53 @@ Services: /search (1cr), /google (1cr), /summarize (2cr)" class="w-full px-4 py-
     </div>
   </section>
 
+  <!-- Test Buy Panel -->
+  <section class="max-w-2xl mx-auto px-6 mb-16">
+    <div class="bg-white rounded-2xl shadow-xl border border-sand-200 p-8">
+      <h3 class="text-xl font-bold text-gray-900 mb-1">Test Buy</h3>
+      <p class="text-sm text-gray-500 mb-6">Try buying from an agent without submitting it.</p>
+
+      <!-- Tabs -->
+      <div class="flex rounded-xl bg-sand-100 p-1 mb-6">
+        <button id="test-tab-direct" onclick="switchTestTab('direct')" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all bg-white text-gray-900 shadow">
+          Direct URL
+        </button>
+        <button id="test-tab-nevermined" onclick="switchTestTab('nevermined')" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-gray-500 hover:text-gray-700">
+          Nevermined Agent
+        </button>
+      </div>
+
+      <!-- Direct fields -->
+      <div id="test-direct-fields" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Seller URL</label>
+          <input type="text" id="test-url" placeholder="https://their-agent.railway.app/api/analyze" class="w-full px-4 py-2.5 rounded-lg border border-sand-200 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-perch-500 text-sm mono transition-all">
+        </div>
+      </div>
+
+      <!-- Nevermined fields -->
+      <div id="test-nvm-fields" class="hidden space-y-4">
+        <div class="grid grid-cols-1 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Plan ID</label>
+            <input type="text" id="test-planId" placeholder="did:nv:198551..." class="w-full px-4 py-2.5 rounded-lg border border-sand-200 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-perch-500 text-sm mono transition-all">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Agent ID</label>
+            <input type="text" id="test-agentId" placeholder="did:nv:386174..." class="w-full px-4 py-2.5 rounded-lg border border-sand-200 bg-sand-50 focus:outline-none focus:ring-2 focus:ring-perch-500 text-sm mono transition-all">
+          </div>
+        </div>
+      </div>
+
+      <button onclick="runTestBuy()" id="test-buy-btn" class="mt-5 w-full py-3 px-6 rounded-lg bg-gradient-to-r from-tally-600 to-tally-800 text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all active:scale-[0.98]">
+        Test Buy
+      </button>
+
+      <!-- Result -->
+      <div id="test-result" class="hidden mt-5 p-4 rounded-xl border text-sm fade-in"></div>
+    </div>
+  </section>
+
   <!-- Agent Wall -->
   <section class="max-w-7xl mx-auto px-6 pb-20">
     <div class="flex items-center justify-between mb-6">
@@ -619,6 +666,67 @@ async function refreshWall() {
 // Initial load + auto-refresh
 refreshWall();
 setInterval(refreshWall, 5000);
+
+// ============================================================================
+// Test Buy
+// ============================================================================
+
+let currentTestTab = 'direct';
+
+function switchTestTab(tab) {
+  currentTestTab = tab;
+  const isDirect = tab === 'direct';
+  document.getElementById('test-tab-direct').className = `flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${isDirect ? 'bg-white text-gray-900 shadow' : 'text-gray-500 hover:text-gray-700'}`;
+  document.getElementById('test-tab-nevermined').className = `flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${!isDirect ? 'bg-white text-gray-900 shadow' : 'text-gray-500 hover:text-gray-700'}`;
+  document.getElementById('test-direct-fields').classList.toggle('hidden', !isDirect);
+  document.getElementById('test-nvm-fields').classList.toggle('hidden', isDirect);
+  document.getElementById('test-result').classList.add('hidden');
+}
+
+async function runTestBuy() {
+  const btn = document.getElementById('test-buy-btn');
+  const result = document.getElementById('test-result');
+  result.classList.add('hidden');
+  btn.disabled = true;
+  btn.textContent = 'Buying...';
+
+  const body = { buyType: currentTestTab };
+  if (currentTestTab === 'direct') {
+    body.url = document.getElementById('test-url').value.trim();
+    if (!body.url) { showTestResult('error', 'Please enter a seller URL'); btn.disabled = false; btn.textContent = 'Test Buy'; return; }
+  } else {
+    body.planId = document.getElementById('test-planId').value.trim();
+    body.agentId = document.getElementById('test-agentId').value.trim();
+    if (!body.planId || !body.agentId) { showTestResult('error', 'Please enter both Plan ID and Agent ID'); btn.disabled = false; btn.textContent = 'Test Buy'; return; }
+  }
+
+  try {
+    const resp = await fetch('/api/agents/test-buy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+
+    if (data.success) {
+      showTestResult('success', `Purchase successful! Response: ${data.responseTimeMs}ms · Satisfaction: ${data.satisfactionScore}/100`);
+    } else {
+      showTestResult('error', `Purchase failed: ${data.error || 'Unknown error'}`);
+    }
+  } catch (err) {
+    showTestResult('error', 'Network error: ' + err.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Test Buy';
+}
+
+function showTestResult(type, message) {
+  const el = document.getElementById('test-result');
+  el.className = `mt-5 p-4 rounded-xl border text-sm fade-in ${type === 'success' ? 'bg-perch-50 border-perch-200 text-perch-800' : 'bg-red-50 border-red-200 text-red-800'}`;
+  el.textContent = message;
+  el.classList.remove('hidden');
+}
 
 // ============================================================================
 // QR Code Generation (using QR Server API)
