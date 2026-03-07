@@ -233,8 +233,8 @@ app.post('/api/demo', async (req: Request, res: Response) => {
   const body = req.body as AnalysisRequest
 
   if (!body.query_type) {
-    res.status(400).json({ error: 'query_type is required' })
-    return
+    body.query_type = 'expense_classify'
+    body.params = body.params || { description: 'HVAC repair', amount: 450 }
   }
 
   try {
